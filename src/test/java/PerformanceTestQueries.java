@@ -12,8 +12,10 @@ public class PerformanceTestQueries extends PerformanceTestSuite {
     @Override
     protected PerformanceTest[] getPerfTests() {
         return new PerformanceTest[]{
-                //new PerformanceTestCypherTriangleCount()//,
+                new PerformanceTestCypherTriangleCount(),
                 new PerformanceTestCypherTriangleReturnNodes()
         };
     }
+
+
 }

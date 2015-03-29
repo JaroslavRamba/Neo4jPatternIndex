@@ -1,7 +1,3 @@
-/**
- * Created by Jaroslav on 3/26/15.
- */
-
 import com.esotericsoftware.minlog.Log;
 import com.graphaware.module.algo.generator.api.GeneratorApi;
 import com.graphaware.test.performance.CacheConfiguration;
@@ -9,14 +5,14 @@ import com.graphaware.test.performance.CacheParameter;
 import com.graphaware.test.performance.Parameter;
 import com.graphaware.test.performance.PerformanceTest;
 import com.graphaware.test.util.TestUtils;
-import org.neo4j.cypher.ExecutionEngine;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.kernel.impl.util.StringLogger;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+
 
 public class PerformanceTestCypherTriangleUnionWithOneNode implements PerformanceTest {
 
@@ -92,14 +88,10 @@ public class PerformanceTestCypherTriangleUnionWithOneNode implements Performanc
     @Override
     public long run(GraphDatabaseService database, Map<String, Object> params) {
         long time = 0;
-        StringBuffer dumpBuffer =new StringBuffer();
-        StringLogger dumpLogger = StringLogger.wrap(dumpBuffer);
-        ExecutionEngine engine = new ExecutionEngine(database, dumpLogger);
-
         time += TestUtils.time(new TestUtils.Timed() {
             @Override
             public void time() {
-               //engine.execute("MATCH (a)--(b)--(c)--(a) RETURN a,b,c");
+                //getDatabase().execute("MATCH (a)--(b)--(c)--(a) RETURN a,b,c");
             }
         });
 

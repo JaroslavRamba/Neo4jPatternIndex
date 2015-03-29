@@ -1,14 +1,11 @@
 import com.esotericsoftware.minlog.Log;
 import com.graphaware.module.algo.generator.api.GeneratorApi;
-import com.graphaware.test.performance.*;
+import com.graphaware.test.performance.CacheConfiguration;
+import com.graphaware.test.performance.CacheParameter;
+import com.graphaware.test.performance.Parameter;
+import com.graphaware.test.performance.PerformanceTest;
 import com.graphaware.test.util.TestUtils;
-import com.graphaware.tx.executor.NullItem;
-import com.graphaware.tx.executor.batch.NoInputBatchTransactionExecutor;
-import com.graphaware.tx.executor.batch.UnitOfWork;
-import org.neo4j.cypher.ExecutionEngine;
-import org.neo4j.cypher.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.kernel.impl.util.StringLogger;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -20,6 +17,16 @@ import java.util.Map;
  */
 public class PerformanceTestCypherTriangleCount implements PerformanceTest {
 
+
+    /*
+    * 1) dotazovat se nad 1 id nodu a unionovat to pres počet uzlu
+    *   - chytristika nad neopakováním se pro dotazovaní nad jedním uzlem, již dotazované uzly neopakovat a rovnou přeskočit
+    *   
+    * 2) to samé, ale dotazovat se přes všechny nody a udělat faktorial počtu nodu = počet unionu
+    * 3) vytvoření externí databaze a po jednom patternu to tam šoupat a dotazovat se nad tím, pak to smazat a takhle dokola krom vytvoreni DB
+    * 4) všechno to samé jako předchozí ale na začátku vytvořit DB a všechny patterny tam vložit = subgraf patternu a nad tím se pak dotazovat přes všechny zaindexpvané patterny
+    *
+    * */
     /**
      * {@inheritDoc}
      */
@@ -90,16 +97,13 @@ public class PerformanceTestCypherTriangleCount implements PerformanceTest {
      * {@inheritDoc}
      */
     @Override
-    public long run(GraphDatabaseService database, Map<String, Object> params) {
+    public long run(final GraphDatabaseService database, Map<String, Object> params) {
         long time = 0;
-        StringBuffer dumpBuffer =new StringBuffer();
-        StringLogger dumpLogger = StringLogger.wrap(dumpBuffer);
-        ExecutionEngine engine = new ExecutionEngine(database, dumpLogger);
 
         time += TestUtils.time(new TestUtils.Timed() {
             @Override
             public void time() {
-                engine.execute("MATCH (a) RETURN count(a) ");
+                database.execute("MATCH (a) RETURN count(a) ");
                 //ExecutionResult result = engine.execute("MATCH (a)--(b)--(c)--(a) RETURN count(a)");
                 //Log.info(result.dumpToString());
             }
