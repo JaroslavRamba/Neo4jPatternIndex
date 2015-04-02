@@ -1,7 +1,7 @@
 import com.esotericsoftware.minlog.Log;
 import com.graphaware.module.algo.generator.api.GeneratorApi;
-import com.graphaware.test.performance.CacheConfiguration;
 import com.graphaware.test.performance.CacheParameter;
+import com.graphaware.test.performance.CacheConfiguration;
 import com.graphaware.test.performance.Parameter;
 import com.graphaware.test.performance.PerformanceTest;
 import com.graphaware.test.util.TestUtils;
@@ -104,5 +104,10 @@ public class PerformanceTestCypherTriangleUnionWithThreeNodes implements Perform
     @Override
     public boolean rebuildDatabase(Map<String, Object> params) {
         throw new UnsupportedOperationException("never needed, database rebuilt after every param change");
+    }
+
+    @Override
+    public String getExistingDatabasePath() {
+        return "/home/Jaroslav/Neo4j/neo4j-community-2.2.0-RC01/data/graph10000-50000.db.zip";
     }
 }

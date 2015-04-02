@@ -1,32 +1,28 @@
-import com.esotericsoftware.minlog.Log;
-import com.graphaware.module.algo.generator.api.GeneratorApi;
 import com.graphaware.test.performance.CacheConfiguration;
-import com.graphaware.test.performance.CacheParameter;
 import com.graphaware.test.performance.Parameter;
 import com.graphaware.test.performance.PerformanceTest;
 import com.graphaware.test.util.TestUtils;
+import com.rambajar.graphaware.cache.CacheParameter;
 import org.neo4j.graphdb.GraphDatabaseService;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Created by Jaroslav on 3/25/15.
  */
-public class PerformanceTestCypherTriangleCount implements PerformanceTest {
+public class Test2 implements PerformanceTest {
 
 
     /*
     * 1) dotazovat se nad 1 id nodu a unionovat to pres počet uzlu
     *   - chytristika nad neopakováním se pro dotazovaní nad jedním uzlem, již dotazované uzly neopakovat a rovnou přeskočit
-    *   
     * 2) to samé, ale dotazovat se přes všechny nody a udělat faktorial počtu nodu = počet unionu
     * 3) vytvoření externí databaze a po jednom patternu to tam šoupat a dotazovat se nad tím, pak to smazat a takhle dokola krom vytvoreni DB
     * 4) všechno to samé jako předchozí ale na začátku vytvořit DB a všechny patterny tam vložit = subgraf patternu a nad tím se pak dotazovat přes všechny zaindexpvané patterny
     *
-    * */
     /**
      * {@inheritDoc}
      */
@@ -55,7 +51,7 @@ public class PerformanceTestCypherTriangleCount implements PerformanceTest {
      */
     @Override
     public int dryRuns(Map<String, Object> params) {
-        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 10000 : 100;
+        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 10 : 2;
     }
 
     /**
@@ -63,7 +59,7 @@ public class PerformanceTestCypherTriangleCount implements PerformanceTest {
      */
     @Override
     public int measuredRuns() {
-        return 100;
+        return 10;
     }
 
     /**
@@ -79,10 +75,12 @@ public class PerformanceTestCypherTriangleCount implements PerformanceTest {
      */
     @Override
     public void prepareDatabase(GraphDatabaseService database, final Map<String, Object> params) {
+    }
 
-        GeneratorApi generator = new GeneratorApi(database);
-        generator.erdosRenyiSocialNetwork(1000, 5000);
-        Log.info("Database prepared");
+
+    @Override
+    public String getExistingDatabasePath() {
+        return "/home/Jaroslav/Neo4j/neo4j-community-2.2.0-RC01/data/graph1000-5000.db.zip";
     }
 
     /**
@@ -103,9 +101,12 @@ public class PerformanceTestCypherTriangleCount implements PerformanceTest {
         time += TestUtils.time(new TestUtils.Timed() {
             @Override
             public void time() {
-                database.execute("MATCH (a) RETURN count(a) ");
-                //ExecutionResult result = engine.execute("MATCH (a)--(b)--(c)--(a) RETURN count(a)");
-                //Log.info(result.dumpToString());
+
+                for (int i = 0; i < 169; i++) {
+                    database.execute("MATCH (a)--(b)--(c)--(a) WHERE id(a)=983 RETURN a,b,c"); //2.test
+                    database.execute("MATCH (a)--(b)--(c)--(a) WHERE id(b)=983 RETURN a,b,c"); //2.test
+                    database.execute("MATCH (a)--(b)--(c)--(a) WHERE id(c)=983 RETURN a,b,c"); //2.test
+                }
             }
         });
 

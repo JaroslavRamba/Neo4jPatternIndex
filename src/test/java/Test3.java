@@ -13,7 +13,7 @@ import java.util.*;
 /**
  * Created by Jaroslav on 3/25/15.
  */
-public class PerformanceTestCypherTriangleReturnNodes implements PerformanceTest {
+public class Test3 implements PerformanceTest {
 
 
     /*
@@ -84,7 +84,6 @@ public class PerformanceTestCypherTriangleReturnNodes implements PerformanceTest
     }
 
     Set<String> triangleSet = new HashSet<String>();
-    Set<Integer> nodesSet = new HashSet<Integer>();
 
     @Override
     public String getExistingDatabasePath() {
@@ -104,7 +103,7 @@ public class PerformanceTestCypherTriangleReturnNodes implements PerformanceTest
                         Arrays.sort(nodes);
 
                         String nodesKey = nodes[0]+"_"+nodes[1]+"_"+nodes[2];
-                        triangleSet.add(nodesKey);
+                        triangleSet.add(nodesKey); //TODO jestli nejde <INT, INT, INT> zadefinovat
                     }
                 }catch(Exception ex){
 
@@ -134,13 +133,11 @@ public class PerformanceTestCypherTriangleReturnNodes implements PerformanceTest
         long time = 0;
 
         System.out.println("Node set" + triangleSet.size());
-
         Iterator triangleSetIterator = triangleSet.iterator();
         while (triangleSetIterator.hasNext()){
             String triangle = triangleSetIterator.next().toString();
 
             String[] nodes = triangle.split("_");
-
 
             time += TestUtils.time(new TestUtils.Timed() {
                 @Override
@@ -151,17 +148,7 @@ public class PerformanceTestCypherTriangleReturnNodes implements PerformanceTest
                             "MATCH (a)--(b)--(c)--(a) WHERE id(b)="+nodes[0]+" RETURN a,b,c" +
                             " UNION " +
                             "MATCH (a)--(b)--(c)--(a) WHERE id(c)="+nodes[0]+" RETURN a,b,c"
-                    ); //3.test
-
-
-                    /*for (int i = 0; i < 169; i++) {
-                        database.execute("MATCH (a)--(b)--(c)--(a) WHERE id(a)=983 RETURN a,b,c"); //2.test
-                        database.execute("MATCH (a)--(b)--(c)--(a) WHERE id(b)=983 RETURN a,b,c"); //2.test
-                        database.execute("MATCH (a)--(b)--(c)--(a) WHERE id(c)=983 RETURN a,b,c"); //2.test
-                    }*/
-
-                    //Result resutl = database.execute("MATCH (a)--(b)--(c)--(a) RETURN id(a),id(b),id(c)"); //1.test
-                    //System.out.println(resutl.resultAsString());
+                    ); //TODO zkontrolovat, jestli se opravdu našli všechny trojúhelníky
                 }
             });
         }

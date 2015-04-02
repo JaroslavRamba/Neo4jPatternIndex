@@ -4,16 +4,16 @@ import com.graphaware.test.performance.PerformanceTest;
 import com.graphaware.test.util.TestUtils;
 import com.rambajar.graphaware.cache.CacheParameter;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Result;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 /**
  * Created by Jaroslav on 3/25/15.
  */
-public class PerformanceTestCypherTriangleReturnNodes implements PerformanceTest {
+public class Test4 implements PerformanceTest {
 
 
     /*
@@ -75,16 +75,9 @@ public class PerformanceTestCypherTriangleReturnNodes implements PerformanceTest
      */
     @Override
     public void prepareDatabase(GraphDatabaseService database, final Map<String, Object> params) {
-        /*
-        GeneratorApi generator = new GeneratorApi(database);
-        int nodeCount = (int) params.get("nodeCount");
-        generator.erdosRenyiSocialNetwork(nodeCount, nodeCount * 4); //*5 fails to satisfy Erdos-Renyi precondition that the number of edges must be < (n*(n-1))/2 when there are 10 nodes
-        Log.info("Database prepared");
-        */
     }
 
-    Set<String> triangleSet = new HashSet<String>();
-    Set<Integer> nodesSet = new HashSet<Integer>();
+    SortedSet<String> triangleSet = new TreeSet<>();
 
     @Override
     public String getExistingDatabasePath() {
@@ -96,17 +89,17 @@ public class PerformanceTestCypherTriangleReturnNodes implements PerformanceTest
                         //System.out.println(line);
                         String[] parts = line.split("\\|");
                         //System.out.println(parts[1]);
-                        Integer[] nodes = new Integer[3];
-                        nodes[0] = Integer.parseInt(parts[1]);
-                        nodes[1] = Integer.parseInt(parts[2]);
-                        nodes[2] = Integer.parseInt(parts[3]);
+                        Long[] nodes = new Long[3];
+                        nodes[0] = Long.parseLong(parts[1]);
+                        nodes[1] = Long.parseLong(parts[2]);
+                        nodes[2] = Long.parseLong(parts[3]);
 
                         Arrays.sort(nodes);
 
-                        String nodesKey = nodes[0]+"_"+nodes[1]+"_"+nodes[2];
+                        String nodesKey = nodes[0] + "_" + nodes[1] + "_" + nodes[2];
                         triangleSet.add(nodesKey);
                     }
-                }catch(Exception ex){
+                } catch (Exception ex) {
 
                 }
             }
@@ -132,41 +125,82 @@ public class PerformanceTestCypherTriangleReturnNodes implements PerformanceTest
     @Override
     public long run(final GraphDatabaseService database, Map<String, Object> params) {
         long time = 0;
+        int k = 0;
+        System.out.println("Node set size: " + triangleSet.size());
+        SortedSet<String> nodesSet = new TreeSet<>();
+        SortedSet<String> triangleSetResult = new TreeSet<>();
 
-        System.out.println("Node set" + triangleSet.size());
 
         Iterator triangleSetIterator = triangleSet.iterator();
-        while (triangleSetIterator.hasNext()){
+        while (triangleSetIterator.hasNext()) {
             String triangle = triangleSetIterator.next().toString();
 
             String[] nodes = triangle.split("_");
+            if (nodesSet.contains(nodes[0])) {
+                continue;
+            }
 
+            nodesSet.add(nodes[0]);
+            //k++;
+            //System.out.println("Iteration "+k); //heuristika zryhlení
 
             time += TestUtils.time(new TestUtils.Timed() {
                 @Override
                 public void time() {
 
-                    database.execute("MATCH (a)--(b)--(c)--(a) WHERE id(a)="+nodes[0]+" RETURN a,b,c" +
-                            " UNION " +
-                            "MATCH (a)--(b)--(c)--(a) WHERE id(b)="+nodes[0]+" RETURN a,b,c" +
-                            " UNION " +
-                            "MATCH (a)--(b)--(c)--(a) WHERE id(c)="+nodes[0]+" RETURN a,b,c"
-                    ); //3.test
+                    Result result = database.execute("MATCH (a)--(b)--(c)--(a) WHERE id(a)=" + nodes[0] + " RETURN a,b,c" +
+                                    " UNION " +
+                                    "MATCH (a)--(b)--(c)--(a) WHERE id(b)=" + nodes[0] + " RETURN a,b,c" +
+                                    " UNION " +
+                                    "MATCH (a)--(b)--(c)--(a) WHERE id(c)=" + nodes[0] + " RETURN a,b,c"
+                    );
 
-
-                    /*for (int i = 0; i < 169; i++) {
-                        database.execute("MATCH (a)--(b)--(c)--(a) WHERE id(a)=983 RETURN a,b,c"); //2.test
-                        database.execute("MATCH (a)--(b)--(c)--(a) WHERE id(b)=983 RETURN a,b,c"); //2.test
-                        database.execute("MATCH (a)--(b)--(c)--(a) WHERE id(c)=983 RETURN a,b,c"); //2.test
-                    }*/
-
-                    //Result resutl = database.execute("MATCH (a)--(b)--(c)--(a) RETURN id(a),id(b),id(c)"); //1.test
-                    //System.out.println(resutl.resultAsString());
+                    addNodesToResult(triangleSetResult, result);
                 }
             });
         }
 
-        return  time;
+        System.out.println("Triangle result set finaly size: " + triangleSetResult.size());
+        saveSortedSetToFIle("triangleSet", triangleSet);
+        saveSortedSetToFIle("triangleSetResult", triangleSetResult);
+
+        return time;
+    }
+
+    private void addNodesToResult(Set<String> triangleSetResult, Result result) {
+        while (result.hasNext()) {
+            Map<String, Object> row = result.next();
+            Node[] graphNodes = new Node[3];
+            int i = 0;
+            for (Map.Entry<String, Object> column : row.entrySet()) {
+                graphNodes[i++] = (Node) column.getValue();
+            }
+
+            Long[] nodes = new Long[3];
+            nodes[0] = graphNodes[0].getId();
+            nodes[1] = graphNodes[1].getId();
+            nodes[2] = graphNodes[2].getId();
+
+            Arrays.sort(nodes);
+
+            String nodesKey = nodes[0] + "_" + nodes[1] + "_" + nodes[2];
+            triangleSetResult.add(nodesKey);
+        }
+    }
+
+    private void saveSortedSetToFIle(String fileName, Set<String> hashSet){
+
+        try {
+            PrintStream out = null;
+            out = new PrintStream(new FileOutputStream(fileName));
+            Iterator hashSetIterator = hashSet.iterator();
+            while(hashSetIterator.hasNext()){
+                out.println(hashSetIterator.next());
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
