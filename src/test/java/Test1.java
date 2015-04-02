@@ -101,6 +101,7 @@ public class Test1 implements PerformanceTest {
             @Override
             public void time() {
                 database.execute("MATCH (a)--(b)--(c)--(a) RETURN id(a),id(b),id(c)");
+                //Result resutl = database.execute("MATCH (a)-[d]-(b)-[e]-(c)-[f]-(a) RETURN id(a),id(b),id(c),id(d),id(e),id(f)");
                 //Result resutl = database.execute("MATCH (a)--(b)--(c)--(a) RETURN id(a),id(b),id(c)"); //1.test
                 //System.out.println(resutl.resultAsString());
             }
