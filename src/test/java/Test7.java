@@ -134,6 +134,11 @@ public class Test7 implements PerformanceTest {
         /*Create tmp DB*/
         createTemporaryFolder();
         GraphDatabaseBuilder graphDatabaseBuilder = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(temporaryFolder.getRoot().getPath());
+        Map<String, String> dbConfig = databaseParameters(params);
+        if (dbConfig != null) {
+            graphDatabaseBuilder = graphDatabaseBuilder.setConfig(dbConfig);
+        }
+
         temporaryDatabase = graphDatabaseBuilder.newGraphDatabase();
 
         Iterator triangleSetIterator = triangleSet.iterator();
