@@ -4,13 +4,11 @@ import com.graphaware.test.performance.Parameter;
 import com.graphaware.test.performance.PerformanceTest;
 import com.graphaware.test.util.TestUtils;
 import org.junit.rules.TemporaryFolder;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -21,6 +19,7 @@ public class Test7 implements PerformanceTest {
 
     private TemporaryFolder temporaryFolder;
     private GraphDatabaseService temporaryDatabase;
+
 
     /*
     * 1) dotazovat se nad 1 id nodu a unionovat to pres počet uzlu
@@ -83,36 +82,11 @@ public class Test7 implements PerformanceTest {
     public void prepareDatabase(GraphDatabaseService database, final Map<String, Object> params) {
     }
 
-    Set<String> triangleSet = new HashSet<String>();
+    SortedSet<String> triangleSet = new TreeSet<>();
 
     @Override
     public String getExistingDatabasePath() {
-        try {
-            try (BufferedReader br = new BufferedReader(new FileReader("/home/Jaroslav/Dropbox/FIT/Magistr/Diplomová práce/Testování/triangles_data.txt"))) {
-                String line;
-                try {
-                    while ((line = br.readLine()) != null) {
-                        //System.out.println(line);
-                        String[] parts = line.split("\\|");
-                        //System.out.println(parts[1]);
-                        Integer[] nodes = new Integer[3];
-                        nodes[0] = Integer.parseInt(parts[1]);
-                        nodes[1] = Integer.parseInt(parts[2]);
-                        nodes[2] = Integer.parseInt(parts[3]);
-
-                        Arrays.sort(nodes);
-
-                        String nodesKey = nodes[0]+"_"+nodes[1]+"_"+nodes[2];
-                        triangleSet.add(nodesKey); //TODO jestli nejde <INT, INT, INT> zadefinovat
-                    }
-                }catch(Exception ex){
-
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        loadTringlesFromFile();
         return "/home/Jaroslav/Neo4j/neo4j-community-2.2.0-RC01/data/graph1000-5000.db.zip";
     }
 
@@ -124,12 +98,16 @@ public class Test7 implements PerformanceTest {
         return RebuildDatabase.AFTER_PARAM_CHANGE;
     }
 
+
     /**
      * {@inheritDoc}
      */
     @Override
     public long run(final GraphDatabaseService database, Map<String, Object> params) {
         long time = 0;
+
+        System.out.println("Node set " + triangleSet.size());
+        SortedSet<String> triangleSetResult = new TreeSet<>();
 
         /*Create tmp DB*/
         createTemporaryFolder();
@@ -141,26 +119,96 @@ public class Test7 implements PerformanceTest {
 
         temporaryDatabase = graphDatabaseBuilder.newGraphDatabase();
 
-        Iterator triangleSetIterator = triangleSet.iterator();
-        while (triangleSetIterator.hasNext()){
-            time += TestUtils.time(new TestUtils.Timed() {
-                @Override
-                public void time() {
-                    temporaryDatabase.execute("CREATE (a)-[:FRIEND_OF]->(b), (b)-[:FRIEND_OF]->(c), (c)-[:FRIEND_OF]->(a)");
-                }
-            });
-
-            triangleSetIterator.next();
-        }
-
         time += TestUtils.time(new TestUtils.Timed() {
             @Override
             public void time() {
-                temporaryDatabase.execute("MATCH (a)--(b)--(c)--(a) RETURN id(a),id(b),id(c)");
+                Iterator triangleSetIterator = triangleSet.iterator();
+                while (triangleSetIterator.hasNext()) {
+                    String triangle = triangleSetIterator.next().toString();
+                    String[] nodes = triangle.split("_");
+
+                    Relationship[] sourceRelationships = new Relationship[3];
+                    Transaction txDatabase = database.beginTx();
+                    Transaction txTemporaryDatabase = temporaryDatabase.beginTx();
+
+                    try {
+                        Map<Long, Node> copiedNodes = new HashMap<>();
+
+                        for (int i = 0; i < sourceRelationships.length; i++) {
+                            Relationship sourceRelationship = database.getRelationshipById(Long.parseLong(nodes[i]));
+                            Node sourceStartNode = sourceRelationship.getStartNode();
+                            Node sourceEndNode = sourceRelationship.getEndNode();
+
+                            Node targetStartNode;
+                            if (!copiedNodes.containsKey(sourceStartNode.getId())) {
+                                targetStartNode = temporaryDatabase.createNode();
+                                copyProperties(sourceStartNode, targetStartNode);
+                                copiedNodes.put(sourceStartNode.getId(), targetStartNode);
+                            } else {
+                                targetStartNode = copiedNodes.get(sourceStartNode.getId());
+                            }
+
+                            Node targetEndNode;
+                            if (!copiedNodes.containsKey(sourceEndNode.getId())) {
+                                targetEndNode = temporaryDatabase.createNode();
+                                copyProperties(sourceEndNode, targetEndNode);
+                                copiedNodes.put(sourceEndNode.getId(), targetEndNode);
+                            } else {
+                                targetEndNode = copiedNodes.get(sourceEndNode.getId());
+                            }
+
+                            Relationship targetRelationship = targetStartNode.createRelationshipTo(targetEndNode, sourceRelationship.getType());
+                            copyProperties(sourceRelationship, targetRelationship);
+                        }
+
+                        txTemporaryDatabase.success();
+                        txTemporaryDatabase.close();
+
+                        txDatabase.success();
+                        txDatabase.close();
+                    } catch (Exception e) {
+                        txTemporaryDatabase.failure();
+                        txDatabase.failure();
+                        e.printStackTrace();
+                    }
+                }
+
+                Result result = temporaryDatabase.execute("MATCH (a)--(b)--(c)--(a) RETURN a,b,c");
+                //System.out.println(result.resultAsString());
+                addNodesToResult(triangleSetResult, result);
+
+
+                closeDatabase();
             }
         });
 
-        return  time;
+        return time;
+    }
+
+    private void addNodesToResult(Set<String> triangleSetResult, Result result) {
+        while (result.hasNext()) {
+            Map<String, Object> row = result.next();
+            Node[] graphNodes = new Node[3];
+            int i = 0;
+            for (Map.Entry<String, Object> column : row.entrySet()) {
+                graphNodes[i++] = (Node) column.getValue();
+            }
+
+            Long[] nodes = new Long[3];
+            nodes[0] = graphNodes[0].getId();
+            nodes[1] = graphNodes[1].getId();
+            nodes[2] = graphNodes[2].getId();
+
+            Arrays.sort(nodes);
+
+            String nodesKey = nodes[0] + "_" + nodes[1] + "_" + nodes[2];
+            triangleSetResult.add(nodesKey);
+        }
+    }
+
+    private static void copyProperties(PropertyContainer source, PropertyContainer target) {
+        for (String key : source.getPropertyKeys())
+            target.setProperty(key, source.getProperty(key));
     }
 
     private void closeDatabase() {
@@ -168,6 +216,41 @@ public class Test7 implements PerformanceTest {
             temporaryDatabase.shutdown();
             temporaryFolder.delete();
             temporaryDatabase = null;
+        }
+    }
+
+
+    private void loadTringlesFromFile() {
+        try {
+            try (BufferedReader br = new BufferedReader(new FileReader("/home/Jaroslav/Dropbox/FIT/Magistr/Diplomová práce/Testování/triangles_nodes_with_relationships_data.txt"))) {
+                String line;
+                try {
+                    while ((line = br.readLine()) != null) {
+                        //System.out.println(line);
+                        String[] parts = line.split("\\|");
+                        //System.out.println(parts[1]);
+                        Long[] nodes = new Long[3];
+                        nodes[0] = Long.parseLong(parts[1]);
+                        nodes[1] = Long.parseLong(parts[2]);
+                        nodes[2] = Long.parseLong(parts[3]);
+
+                        Long[] relationships = new Long[3];
+                        relationships[0] = Long.parseLong(parts[4]);
+                        relationships[1] = Long.parseLong(parts[5]);
+                        relationships[2] = Long.parseLong(parts[6]);
+
+                        Arrays.sort(nodes);
+                        Arrays.sort(relationships);
+
+                        String key = relationships[0] + "_" + relationships[1] + "_" + relationships[2];
+                        triangleSet.add(key);
+                    }
+                } catch (Exception ex) {
+
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
