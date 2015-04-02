@@ -86,10 +86,16 @@
 
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
-            <version>2.2.0.28</version>
             <artifactId>tests</artifactId>
-            <scope>test</scope>
+            <version>2.2.0.29-SNAPSHOT</version>
         </dependency>
+
+        <!--<dependency>
+             <groupId>com.graphaware.neo4j</groupId>
+             <version>2.2.0.28</version>
+             <artifactId>tests</artifactId>
+             <scope>test</scope>
+         </dependency>-->
 
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
@@ -110,30 +116,34 @@
             <version>2.2.0.28.5</version>
         </dependency>
 
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+   </dependencies>
 
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>attached</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <finalName>${project.name}-all-${project.version}</finalName>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <appendAssemblyId>false</appendAssemblyId>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
+   <build>
+       <plugins>
+           <plugin>
+               <artifactId>maven-assembly-plugin</artifactId>
+               <executions>
+                   <execution>
+                       <phase>package</phase>
+                       <goals>
+                           <goal>attached</goal>
+                       </goals>
+                   </execution>
+               </executions>
+               <configuration>
+                   <finalName>${project.name}-all-${project.version}</finalName>
+                   <descriptorRefs>
+                       <descriptorRef>jar-with-dependencies</descriptorRef>
+                   </descriptorRefs>
+                   <appendAssemblyId>false</appendAssemblyId>
+               </configuration>
+           </plugin>
+       </plugins>
+   </build>
 </project>

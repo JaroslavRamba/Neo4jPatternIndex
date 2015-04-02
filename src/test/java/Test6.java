@@ -1,8 +1,8 @@
 import com.graphaware.test.performance.CacheConfiguration;
+import com.graphaware.test.performance.CacheParameter;
 import com.graphaware.test.performance.Parameter;
 import com.graphaware.test.performance.PerformanceTest;
 import com.graphaware.test.util.TestUtils;
-import com.rambajar.graphaware.cache.CacheParameter;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
@@ -125,27 +125,57 @@ public class Test6 implements PerformanceTest {
                 while (triangleSetIterator.hasNext()) {
                     String triangle = triangleSetIterator.next().toString();
                     String[] nodes = triangle.split("_");
-                    try (Transaction tx = database.beginTx()) {
-                        Node node1 = database.getNodeById(Long.parseLong(nodes[0]));
-                        Node node2 = database.getNodeById(Long.parseLong(nodes[1]));
-                        Node node3 = database.getNodeById(Long.parseLong(nodes[2]));
 
-                        Relationship rel1 = database.getRelationshipById(Long.parseLong(nodes[0]));
-                        Relationship rel2 = database.getRelationshipById(Long.parseLong(nodes[1]));
-                        Relationship rel3 = database.getRelationshipById(Long.parseLong(nodes[2]));
-                        tx.success();
-                        tx.close();
-                    } catch(Exception e){
+                    Relationship[] sourceRelationships = new Relationship[3];
+                    Transaction txDatabase = database.beginTx();
+                    Transaction txTemporaryDatabase = temporaryDatabase.beginTx();
+
+                    try {
+                        Map<Long, Node> copiedNodes = new HashMap<>();
+
+                        for (int i = 0; i < sourceRelationships.length; i++) {
+                            Relationship sourceRelationship = database.getRelationshipById(Long.parseLong(nodes[i]));
+                            Node sourceStartNode = sourceRelationship.getStartNode();
+                            Node sourceEndNode = sourceRelationship.getEndNode();
+
+                            Node targetStartNode;
+                            if (!copiedNodes.containsKey(sourceStartNode.getId())) {
+                                targetStartNode = temporaryDatabase.createNode();
+                                copyProperties(sourceStartNode, targetStartNode);
+                                copiedNodes.put(sourceStartNode.getId(), targetStartNode);
+                            } else {
+                                targetStartNode = copiedNodes.get(sourceStartNode.getId());
+                            }
+
+                            Node targetEndNode;
+                            if (!copiedNodes.containsKey(sourceEndNode.getId())) {
+                                targetEndNode = temporaryDatabase.createNode();
+                                copyProperties(sourceEndNode, targetEndNode);
+                                copiedNodes.put(sourceEndNode.getId(), targetEndNode);
+                            } else {
+                                targetEndNode = copiedNodes.get(sourceEndNode.getId());
+                            }
+
+                            Relationship targetRelationship = targetStartNode.createRelationshipTo(targetEndNode, sourceRelationship.getType());
+                            copyProperties(sourceRelationship, targetRelationship);
+                        }
+
+                        txTemporaryDatabase.success();
+                        txTemporaryDatabase.close();
+
+                        txDatabase.success();
+                        txDatabase.close();
+                    } catch (Exception e) {
+                        txTemporaryDatabase.failure();
+                        txDatabase.failure();
                         e.printStackTrace();
                     }
 
-                    temporaryDatabase.execute("CREATE (a)-[:FRIEND_OF]->(b), (b)-[:FRIEND_OF]->(c), (c)-[:FRIEND_OF]->(a)");
-                    temporaryDatabase.execute("MATCH (a)--(b)--(c)--(a) RETURN id(a),id(b),id(c)");
-
-                    temporaryDatabase.execute("START n=node(*) MATCH n-[r]-() DELETE n, r");
-                    temporaryDatabase.execute("MATCH (n) RETURN count(n)");
+                    Result result = temporaryDatabase.execute("MATCH (a)--(b)--(c)--(a) RETURN id(a),id(b),id(c)");
                     //System.out.println(result.resultAsString());
-                    //triangleSetResult.add(triangle);
+                    temporaryDatabase.execute("START n=node(*) MATCH n-[r]-() DELETE n, r");
+                    //result = temporaryDatabase.execute("MATCH (n) RETURN count(n)");
+                    //System.out.println(result.resultAsString());
                 }
 
                 closeDatabase();
@@ -153,6 +183,11 @@ public class Test6 implements PerformanceTest {
         });
 
         return time;
+    }
+
+    private static void copyProperties(PropertyContainer source, PropertyContainer target) {
+        for (String key : source.getPropertyKeys())
+            target.setProperty(key, source.getProperty(key));
     }
 
     private void closeDatabase() {
@@ -186,7 +221,7 @@ public class Test6 implements PerformanceTest {
                         Arrays.sort(nodes);
                         Arrays.sort(relationships);
 
-                        String key = nodes[0] + "_" + nodes[1] + "_" + nodes[2] + "_" + relationships[0] + "_" + relationships[1] + "_" + relationships[2];
+                        String key = relationships[0] + "_" + relationships[1] + "_" + relationships[2];
                         triangleSet.add(key);
                     }
                 } catch (Exception ex) {

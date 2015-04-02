@@ -1,8 +1,8 @@
 import com.graphaware.test.performance.CacheConfiguration;
+import com.graphaware.test.performance.CacheParameter;
 import com.graphaware.test.performance.Parameter;
 import com.graphaware.test.performance.PerformanceTest;
 import com.graphaware.test.util.TestUtils;
-import com.rambajar.graphaware.cache.CacheParameter;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 import java.io.BufferedReader;

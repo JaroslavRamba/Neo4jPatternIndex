@@ -1,13 +1,10 @@
 import com.graphaware.test.performance.CacheConfiguration;
+import com.graphaware.test.performance.CacheParameter;
 import com.graphaware.test.performance.Parameter;
 import com.graphaware.test.performance.PerformanceTest;
 import com.graphaware.test.util.TestUtils;
-import com.rambajar.graphaware.cache.CacheParameter;
 import org.neo4j.graphdb.GraphDatabaseService;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import org.neo4j.graphdb.Result;
 import java.util.*;
 
 /**
@@ -100,10 +97,10 @@ public class Test1 implements PerformanceTest {
         time += TestUtils.time(new TestUtils.Timed() {
             @Override
             public void time() {
-                database.execute("MATCH (a)--(b)--(c)--(a) RETURN id(a),id(b),id(c)");
-                //Result resutl = database.execute("MATCH (a)-[d]-(b)-[e]-(c)-[f]-(a) RETURN id(a),id(b),id(c),id(d),id(e),id(f)");
+                //database.execute("MATCH (a)--(b)--(c)--(a) RETURN id(a),id(b),id(c)");
+                Result resutl = database.execute("MATCH (a)-[d]-(b)-[e]-(c)-[f]-(a) RETURN id(a),id(b),id(c),id(d),id(e),id(f)");
                 //Result resutl = database.execute("MATCH (a)--(b)--(c)--(a) RETURN id(a),id(b),id(c)"); //1.test
-                //System.out.println(resutl.resultAsString());
+                System.out.println(resutl.resultAsString());
             }
         });
 

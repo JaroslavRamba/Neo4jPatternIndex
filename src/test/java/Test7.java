@@ -1,8 +1,8 @@
 import com.graphaware.test.performance.CacheConfiguration;
+import com.graphaware.test.performance.CacheParameter;
 import com.graphaware.test.performance.Parameter;
 import com.graphaware.test.performance.PerformanceTest;
 import com.graphaware.test.util.TestUtils;
-import com.rambajar.graphaware.cache.CacheParameter;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
@@ -149,6 +149,8 @@ public class Test7 implements PerformanceTest {
                     temporaryDatabase.execute("CREATE (a)-[:FRIEND_OF]->(b), (b)-[:FRIEND_OF]->(c), (c)-[:FRIEND_OF]->(a)");
                 }
             });
+
+            triangleSetIterator.next();
         }
 
         time += TestUtils.time(new TestUtils.Timed() {
