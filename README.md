@@ -1,2 +1,2 @@
-# Neo4jPatternIndex
-# Neo4jPatternIndex
+# Neo4j Pattern Index
+
