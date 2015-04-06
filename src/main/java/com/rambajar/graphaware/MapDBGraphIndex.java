@@ -1,7 +1,9 @@
 package com.rambajar.graphaware;
 
+import com.esotericsoftware.minlog.Log;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
+import org.neo4j.csv.reader.SourceTraceability;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 
@@ -12,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * {@link GraphIndex} for Neo4j.
+ * {@link MapDBGraphIndex} for store patterns.
  */
 public class MapDBGraphIndex extends BaseGraphIndex {
 
@@ -26,10 +28,6 @@ public class MapDBGraphIndex extends BaseGraphIndex {
                 //.transactionDisable() //TODO set configuration
                 .closeOnJvmShutdown()
                 .make();
-
-        System.out.println(mapDB.exists("indexName"));
-        System.out.println(mapDB.exists("triangle"));
-
     }
 
     protected void createRecordIndex(String indexName, String pattern) {
@@ -42,9 +40,9 @@ public class MapDBGraphIndex extends BaseGraphIndex {
             throw new IllegalArgumentException("Invalid pattern");
         }
 
-        ConcurrentNavigableMap<String, String> indexRecord = mapDB.getTreeMap(INDEX_RECORD);
-        if (!indexRecord.containsKey(indexName)) {
-            indexRecord.put(indexName, pattern);
+        ConcurrentNavigableMap<String, String> indexRecords = mapDB.getTreeMap(INDEX_RECORD);
+        if (!indexRecords.containsKey(indexName)) {
+            indexRecords.put(indexName, pattern);
         } else {
             throw new IllegalArgumentException("Index name already exist");
         }
@@ -53,11 +51,11 @@ public class MapDBGraphIndex extends BaseGraphIndex {
     }
 
     protected void createPatternIndex(String indexName, String pattern) {
-        ConcurrentNavigableMap<String, String> indexRecord = mapDB.getTreeMap(indexName);
+        ConcurrentNavigableMap<String, String> patternRecords = mapDB.getTreeMap(indexName);
 
         Set<String> nodesColumns = getNodesColumns(pattern);
         Set<String> relationshipsColumns = getRelationshipsColumns(pattern);
-        String patternCypherQuery = createPatternCypherQuery(pattern, nodesColumns, relationshipsColumns);
+        String patternCypherQuery = createPatternCypherQuery(pattern, nodesColumns, relationshipsColumns); //TODO node with contains only : or properties without name
 
         Result result = database.execute(patternCypherQuery);
         while (result.hasNext()) {
@@ -76,8 +74,8 @@ public class MapDBGraphIndex extends BaseGraphIndex {
             }
 
             String key = getPartOfKey(nodes) + "_" + getPartOfKey(relationships);
-            if (!indexRecord.containsKey(key)) {
-                indexRecord.put(key, "");
+            if (!patternRecords.containsKey(key)) {
+                patternRecords.put(key, "");
             }
         }
 
@@ -99,13 +97,13 @@ public class MapDBGraphIndex extends BaseGraphIndex {
         return cypherQuery.substring(0, cypherQuery.length() - 1);
     }
 
+
     protected void deleteRecordIndex(String indexName) {
-        ConcurrentNavigableMap<String, String> indexRecord = mapDB.getTreeMap(INDEX_RECORD);
-        if (indexRecord.containsKey(indexName)) {
-            indexRecord.remove(indexName);
+        ConcurrentNavigableMap<String, String> indexRecords = mapDB.getTreeMap(INDEX_RECORD);
+        if (indexRecords.containsKey(indexName)) {
+            indexRecords.remove(indexName);
         } else {
             throw new IllegalArgumentException("Index name doesn't exist");
-
         }
     }
 
@@ -117,6 +115,75 @@ public class MapDBGraphIndex extends BaseGraphIndex {
         }
     }
 
+    protected HashSet<Map<String, Object>> getPatterns(String indexName, String query) {
+        query = query.toLowerCase();
+
+        if (!isValidQuery(query)) {
+            throw new IllegalArgumentException("Invalid query");
+        }
+
+        ConcurrentNavigableMap<String, String> indexRecords = mapDB.getTreeMap(INDEX_RECORD);
+        if (indexRecords.containsKey(indexName)) {
+            ConcurrentNavigableMap<String, String> patternRecords = mapDB.getTreeMap(indexName);
+
+            //TODO extract to special algorithm search pattern class
+            HashSet<String> usedNodes = new HashSet<>();
+            HashSet<Map<String, Object>> result = new HashSet<>();
+            Log.info("Keyset size: " + patternRecords.keySet().size());
+            for (String patternRecord : patternRecords.keySet()) {
+                String[] patternKey = patternRecord.split("__");
+                String[] patternNodes = patternKey[0].substring(1).split("_");
+                if (!usedNodes.contains(patternNodes[0])) {
+                    usedNodes.add(patternNodes[0]);
+
+                    String cypherQuery = createSingleNodeCypherQuery(query, patternNodes[0]);
+                    //Log.info(cypherQuery);
+                    Result queryResult = database.execute(cypherQuery);
+                    while (queryResult.hasNext()) {
+                        result.add(queryResult.next());
+                    }
+                }
+            }
+            Log.info("Keyset reduction size: " + usedNodes.size());
+            return result;
+            /*System.out.println("Total of " + result.size() + " triangles.");
+            System.out.println();
+            for (Map<String, Object> row : result) {
+                System.out.print("|");
+                for (Map.Entry<String, Object> column : row.entrySet()) {
+                    System.out.print(column.getValue() + "|");
+                }
+                System.out.println();
+            }*/
+        } else {
+            throw new IllegalArgumentException("Index name doesn't exist");
+        }
+    }
+
+    /*Algorithm help methods*/
+    private String createSingleNodeCypherQuery(String query, String nodeId) {
+
+        Set<String> nodesColumns = getNodesColumns(getPatternFromQuery(query));
+        String cypherQuery = "";
+
+        /*
+            MATCH (a)--(b)--(c)--(a)
+            WHERE id(a)=nodeId
+            RETURN id(a), id(b), id(c) UNION ...
+        */
+
+        for (String nodeColumn : nodesColumns) {
+            String whereClause = "where id(" + nodeColumn + ")=" + nodeId + " ";
+            if (query.contains("where")) {
+                cypherQuery += query.replace("where", whereClause + "and ") + " UNION "; //replace where and add AND
+            } else {
+                cypherQuery += query.replace("return", whereClause + "return") + " UNION "; //replace where and add AND
+            }
+
+        }
+
+        return cypherQuery.substring(0, cypherQuery.length() - 7);
+    }
 
     /*Help methods*/
     private Set<String> getNodesColumns(String pattern) {
@@ -158,6 +225,10 @@ public class MapDBGraphIndex extends BaseGraphIndex {
             }
         }
 
+        if (!(nodesColumns.size() > 1 && relationshipsColumns.size() > 0)) {
+            return false;
+        }
+
         return true;
     }
 
@@ -171,6 +242,28 @@ public class MapDBGraphIndex extends BaseGraphIndex {
         }
 
         return true;
+    }
+
+    private String getPatternFromQuery(String query) {
+        String regxp;
+        if (query.contains("where")) {
+            regxp = "match (.*?) where";
+        } else {
+            regxp = "match (.*?) return";
+        }
+
+        Pattern p = Pattern.compile(regxp);
+        Matcher m = p.matcher(query);
+        if (m.find() && m.groupCount() != 1) {
+            return null;
+        }
+
+        return m.group().trim();
+    }
+
+    private boolean isValidQuery(String query) {
+        //MATCH <pattern> WHERE <condition> RETURN <expr>
+        return isValidPattern(getPatternFromQuery(query));
     }
 
     private String getPartOfKey(Long[] IDs) {

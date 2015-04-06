@@ -1,3 +1,5 @@
+package com.rambajar.graphaware;
+
 import com.rambajar.graphaware.GraphIndex;
 import com.rambajar.graphaware.MapDBGraphIndex;
 import org.junit.Test;

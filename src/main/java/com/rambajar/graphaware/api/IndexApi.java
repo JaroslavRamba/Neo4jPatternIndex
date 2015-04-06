@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.util.HashSet;
+import java.util.Map;
+
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 /**
  *  REST API for indexing patterns in the database.
@@ -27,14 +30,20 @@ public class IndexApi {
         this.graphIndex = new MapDBGraphIndex(database);
     }
 
-    @RequestMapping(value = "/create/{indexName}/{pattern}", method = POST)
+    @RequestMapping(value = "/{indexName}/{pattern}", method = PUT)
     @ResponseStatus(HttpStatus.CREATED)
     public void createPatternIndex(@PathVariable String indexName, @PathVariable String pattern) {
         graphIndex.create(indexName, pattern);
     }
 
-    @RequestMapping(value = "/delete/{indexName}", method = POST)
-    @ResponseStatus(HttpStatus.CREATED)
+    @RequestMapping(value = "/{indexName}/{pattern}", method = POST)
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public HashSet<Map<String, Object>> getPatterns(@PathVariable String indexName, @PathVariable String query) {
+        return graphIndex.get(indexName, query);
+    }
+
+    @RequestMapping(value = "/{indexName}", method = DELETE)
+    @ResponseStatus(HttpStatus.ACCEPTED)
     public void deletePatternIndex(@PathVariable String indexName) {
         graphIndex.delete(indexName);
     }

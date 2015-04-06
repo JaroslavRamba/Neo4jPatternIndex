@@ -1,0 +1,7 @@
+{
+    "statements": [
+        {
+            "statement": "CREATE (one:One {name:'one'})-[:R1 {timestamp:123456789}]->(two:Two {name:'two'})<-[:R2]-(:Three)"
+        }
+    ]
+}

@@ -18,28 +18,11 @@ public class TransactionHandleBootstrapper implements RuntimeModuleBootstrapper 
 
     private static final Logger LOG = LoggerFactory.getLogger(TransactionHandleBootstrapper.class);
 
-    //keys to use when configuring using neo4j.properties
-    private static final String UUID_PROPERTY = "uuidProperty";
-    private static final String NODE = "node";
-
     /**
      * @{inheritDoc}
      */
     @Override
     public RuntimeModule bootstrapModule(String moduleId, Map<String, String> config, GraphDatabaseService database) {
-        /*UuidConfiguration configuration = UuidConfiguration.defaultConfiguration();
-
-        if (config.get(UUID_PROPERTY) != null && config.get(UUID_PROPERTY).length() > 0) {
-            configuration = configuration.withUuidProperty(config.get(UUID_PROPERTY));
-            LOG.info("uuidProperty set to {}", configuration.getUuidProperty());
-        }
-
-        if (config.get(NODE) != null) {
-            NodeInclusionPolicy policy = StringToNodeInclusionPolicy.getInstance().apply(config.get(NODE));
-            LOG.info("Node Inclusion Strategy set to {}", policy);
-            configuration = configuration.with(policy);
-        }*/
-
-        return new TransactionHandleModule(moduleId);
+          return new TransactionHandleModule(moduleId);
     }
 }

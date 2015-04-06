@@ -1,3 +1,5 @@
+package com.rambajar.graphaware;
+
 import org.junit.Test;
 
 /**
