@@ -2,6 +2,7 @@ package com.rambajar.graphaware;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.concurrent.ConcurrentNavigableMap;
 
 /**
  * Base class for {@link GraphIndex} implementations.
@@ -14,7 +15,7 @@ public abstract class BaseGraphIndex implements GraphIndex {
     @Override
     public void create(String indexName, String pattern) {
         createRecordIndex(indexName, pattern);
-        createPatternIndex(indexName, pattern);
+        addPatternToIndex(indexName, pattern, null);
     }
 
     /**
@@ -60,5 +61,23 @@ public abstract class BaseGraphIndex implements GraphIndex {
      * @param indexName
      * @param pattern
      */
-    protected abstract void createPatternIndex(String indexName, String pattern);
+    public abstract void addPatternToIndex(String indexName, String pattern, String nodeId);
+
+    /**
+     *
+     * @return
+     */
+    public abstract ConcurrentNavigableMap<String, String> getIndexRecords();
+
+
+    /**
+     *
+     * @return
+     */
+    public abstract ConcurrentNavigableMap<String,String> getPatternRecords(String indexRecord);
+
+    /***
+     *
+     */
+    public abstract void removePatternsFromIndex(String indexRecord, HashSet<String> deletedRelationships);
 }

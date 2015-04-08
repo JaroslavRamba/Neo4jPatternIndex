@@ -36,7 +36,7 @@ public class IndexApi {
         graphIndex.create(indexName, pattern);
     }
 
-    @RequestMapping(value = "/{indexName}/{pattern}", method = POST)
+    @RequestMapping(value = "/{indexName}/{query}", method = POST)
     @ResponseStatus(HttpStatus.ACCEPTED)
     public HashSet<Map<String, Object>> getPatterns(@PathVariable String indexName, @PathVariable String query) {
         return graphIndex.get(indexName, query);

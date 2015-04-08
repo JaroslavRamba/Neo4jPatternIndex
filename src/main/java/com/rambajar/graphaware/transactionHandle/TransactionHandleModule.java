@@ -4,36 +4,30 @@ package com.rambajar.graphaware.transactionHandle;
  * Created by Jaroslav on 3/11/15.
  */
 
-import com.graphaware.runtime.config.TxDrivenModuleConfiguration;
+import com.esotericsoftware.minlog.Log;
 import com.graphaware.runtime.module.BaseTxDrivenModule;
 import com.graphaware.runtime.module.DeliberateTransactionRollbackException;
-import com.graphaware.tx.event.improved.api.Change;
 import com.graphaware.tx.event.improved.api.ImprovedTransactionData;
-import com.graphaware.tx.executor.batch.IterableInputBatchTransactionExecutor;
-import com.graphaware.tx.executor.batch.UnitOfWork;
-import com.graphaware.tx.executor.single.TransactionCallback;
+import com.rambajar.graphaware.GraphIndex;
+import com.rambajar.graphaware.MapDBGraphIndex;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.tooling.GlobalGraphOperations;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Result;
 
-import java.io.*;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentNavigableMap;
 
 public class TransactionHandleModule extends BaseTxDrivenModule<Void> {
 
-    private final static int BATCH_SIZE = 1000;
+    private final GraphIndex graphIndex;
+    private final GraphDatabaseService database;
 
-    //private final UuidGenerator uuidGenerator;
-    //private final UuidConfiguration uuidConfiguration;
-
-    /**
-     * Construct a new UUID module.
-     *
-     * @param moduleId ID of the module.
-     */
-    public TransactionHandleModule(String moduleId) {
+    public TransactionHandleModule(String moduleId, GraphDatabaseService database) {
         super(moduleId);
+        this.graphIndex = new MapDBGraphIndex(database);
+        this.database = database;
     }
 
     /**
@@ -42,44 +36,28 @@ public class TransactionHandleModule extends BaseTxDrivenModule<Void> {
     @Override
     public Void beforeCommit(ImprovedTransactionData transactionData) throws DeliberateTransactionRollbackException {
 
-        try{
-            File file = new File("pattern-index-file-log.txt");
-
-            //if file doesnt exists, then create it
-            if(!file.exists()){
-                file.createNewFile();
+        for (Relationship relationship : transactionData.getAllCreatedRelationships()) {
+            ConcurrentNavigableMap<String, String> indexRecords = graphIndex.getIndexRecords();
+            for (String indexRecord : indexRecords.keySet()) {
+                String pattern = indexRecords.get(indexRecord);
+                graphIndex.addPatternToIndex(indexRecord, pattern, Long.toString(relationship.getStartNode().getId()));
             }
+        }
 
-            //true = append file
-            FileWriter fileWritter = new FileWriter(file.getName(),true);
-            BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-            bufferWritter.write("New transaciton");
-            bufferWritter.newLine();
+        for (Relationship relationship : transactionData.getAllDeletedRelationships()) {
+            ConcurrentNavigableMap<String, String> indexRecords = graphIndex.getIndexRecords();
+            for (String indexRecord : indexRecords.keySet()) {
+                ConcurrentNavigableMap<String, String> patternRecords = graphIndex.getPatternRecords(indexRecord);
+                HashSet<String> deletedRelationships = new HashSet<>();
+                for (String patternRecord : patternRecords.keySet()) {
+                    if (patternRecord.contains("_" + relationship.getId() + "_")) {
+                        deletedRelationships.add(patternRecord);
+                        Log.info(patternRecord + " was removed (" + relationship.getId() + ")");
+                    }
+                }
 
-            bufferWritter.write("Changed nodes");
-            bufferWritter.newLine();
-            for (Change<Node> change: transactionData.getAllChangedNodes()) {
-                bufferWritter.write(change.toString());
-                bufferWritter.newLine();
+                graphIndex.removePatternsFromIndex(indexRecord, deletedRelationships);
             }
-
-            bufferWritter.write("Created nodes");
-            bufferWritter.newLine();
-            for (Node node : transactionData.getAllCreatedNodes()) {
-                bufferWritter.write(Long.toString(node.getId()));
-                bufferWritter.newLine();
-            }
-
-            bufferWritter.write("Deleted nodes");
-            bufferWritter.newLine();
-            for (Node node : transactionData.getAllDeletedNodes()) {
-                bufferWritter.write(Long.toString(node.getId()));
-                bufferWritter.newLine();
-            }
-
-            bufferWritter.close();
-        }   catch(IOException e){
-                e.printStackTrace();
         }
 
 

@@ -1,4 +1,4 @@
-package com.rambajar.graphaware;
+package com.rambajar.graphaware.todo;
 
 import org.junit.Test;
 
