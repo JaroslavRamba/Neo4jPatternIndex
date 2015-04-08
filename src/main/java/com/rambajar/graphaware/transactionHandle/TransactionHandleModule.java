@@ -56,7 +56,7 @@ public class TransactionHandleModule extends BaseTxDrivenModule<Void> {
                     }
                 }
 
-                graphIndex.removePatternsFromIndex(indexRecord, deletedRelationships);
+                graphIndex.deletePatternsFromIndex(indexRecord, deletedRelationships);
             }
         }
 

@@ -38,8 +38,8 @@ public class IndexApi {
 
     @RequestMapping(value = "/{indexName}/{query}", method = POST)
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public HashSet<Map<String, Object>> getPatterns(@PathVariable String indexName, @PathVariable String query) {
-        return graphIndex.get(indexName, query);
+    public String getPatterns(@PathVariable String indexName, @PathVariable String query) {
+          return graphIndex.get(indexName, query);
     }
 
     @RequestMapping(value = "/{indexName}", method = DELETE)

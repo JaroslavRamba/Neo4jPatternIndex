@@ -19,7 +19,7 @@ public interface GraphIndex {
      * Get a patterns.
      *
      */
-    HashSet<Map<String, Object>> get(String indexName, String query);
+    String get(String indexName, String query);
 
 
     /**
@@ -47,7 +47,7 @@ public interface GraphIndex {
      * @param indexRecord
      * @param deletedRelationships
      */
-    void removePatternsFromIndex(String indexRecord, HashSet<String> deletedRelationships);
+    void deletePatternsFromIndex(String indexRecord, HashSet<String> deletedRelationships);
 
     /***
      *
