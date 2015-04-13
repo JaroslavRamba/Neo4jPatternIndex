@@ -10,19 +10,17 @@ import java.io.File;
  */
 public class MapDB {
     private static final String INDEX_DATABASE_PATH = "index/graphIndex";
-    private static boolean hasObject = false;
     private static DB mapDB = null;
 
     public static DB getInstance() {
-        if (hasObject) {
-            return mapDB;
-        } else {
-            hasObject = true;
+        if (mapDB == null) {
             mapDB = DBMaker.newFileDB(new File(INDEX_DATABASE_PATH))
                     .asyncWriteEnable()
                     .make();
 
-            return mapDB;
         }
+
+        return mapDB;
+
     }
 }

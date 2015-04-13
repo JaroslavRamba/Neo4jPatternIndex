@@ -29,6 +29,7 @@ public class GetTrianglesByPatternQuery implements PerformanceTest {
     String pattern = "(a)-[r]-(b)-[p]-(c)-[q]-(a)";
     String indexName = "triangle";
     GraphIndex graphIndex;
+    Boolean indexCreated = false;
 
     /**
      * {@inheritDoc}
@@ -58,7 +59,7 @@ public class GetTrianglesByPatternQuery implements PerformanceTest {
      */
     @Override
     public int dryRuns(Map<String, Object> params) {
-        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 100 : 100; //TODO
+        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 50 : 5; //TODO
     }
 
     /**
@@ -66,7 +67,7 @@ public class GetTrianglesByPatternQuery implements PerformanceTest {
      */
     @Override
     public int measuredRuns() {
-        return 100;
+        return 10;
     }
 
     /**
@@ -83,9 +84,13 @@ public class GetTrianglesByPatternQuery implements PerformanceTest {
     @Override
     public void prepareDatabase(GraphDatabaseService database, final Map<String, Object> params) {
         graphIndex = new MapDBGraphIndex(database);
-        Log.info("Creating index...");
-        graphIndex.create(indexName, pattern);
-        Log.info("Index created");
+
+        if (!indexCreated) {
+            Log.info("Creating index...");
+            graphIndex.create(indexName, pattern);
+            Log.info("Index created");
+            indexCreated = true;
+        }
     }
 
     @Override

@@ -1,11 +1,13 @@
 package com.rambajar.graphaware.performance;
 
+import com.google.gson.Gson;
 import com.graphaware.test.performance.CacheConfiguration;
 import com.graphaware.test.performance.CacheParameter;
 import com.graphaware.test.performance.Parameter;
 import com.graphaware.test.performance.PerformanceTest;
 import com.graphaware.test.util.TestUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Result;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -95,7 +97,9 @@ public class GetVByDefaultQuery implements PerformanceTest {
         time += TestUtils.time(new TestUtils.Timed() {
             @Override
             public void time() {
-                database.execute("MATCH (a)--(b)--(c)--(a) RETURN a,b,c");
+                Result result = database.execute("MATCH (a)--(b)--(c)--(a) RETURN a,b,c");
+                Gson gson = new Gson();
+                gson.toJson(result);
             }
         });
 

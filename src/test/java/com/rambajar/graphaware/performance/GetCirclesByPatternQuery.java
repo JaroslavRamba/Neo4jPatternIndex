@@ -21,6 +21,7 @@ public class GetCirclesByPatternQuery implements PerformanceTest {
     String pattern = "(a)-[f]-(b)-[g]-(c)-[h]-(d)-[i]-(e)-[j]-(a)";
     String indexName = "circle";
     GraphIndex graphIndex;
+    Boolean indexCreated = false;
 
     /**
      * {@inheritDoc}
@@ -75,9 +76,13 @@ public class GetCirclesByPatternQuery implements PerformanceTest {
     @Override
     public void prepareDatabase(GraphDatabaseService database, final Map<String, Object> params) {
         graphIndex = new MapDBGraphIndex(database);
-        Log.info("Creating index...");
-        graphIndex.create(indexName, pattern);
-        Log.info("Index created");
+
+        if (!indexCreated) {
+            Log.info("Creating index...");
+            graphIndex.create(indexName, pattern);
+            Log.info("Index created");
+            indexCreated = true;
+        }
     }
 
     @Override

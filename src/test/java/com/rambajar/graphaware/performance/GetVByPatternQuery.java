@@ -22,6 +22,7 @@ public class GetVByPatternQuery implements PerformanceTest {
     String pattern = "(a)-[d]-(b)-[e]-(c)";
     String indexName = "V";
     GraphIndex graphIndex;
+    Boolean indexCreated =  false;
 
     /**
      * {@inheritDoc}
@@ -76,9 +77,13 @@ public class GetVByPatternQuery implements PerformanceTest {
     @Override
     public void prepareDatabase(GraphDatabaseService database, final Map<String, Object> params) {
         graphIndex = new MapDBGraphIndex(database);
-        Log.info("Creating index...");
-        graphIndex.create(indexName, pattern);
-        Log.info("Index created");
+
+        if (!indexCreated) {
+            Log.info("Creating index...");
+            graphIndex.create(indexName, pattern);
+            Log.info("Index created");
+            indexCreated = true;
+        }
     }
 
     @Override
