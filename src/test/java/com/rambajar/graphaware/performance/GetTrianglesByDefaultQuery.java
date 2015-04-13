@@ -10,6 +10,7 @@ import com.rambajar.graphaware.MapDB;
 import com.rambajar.graphaware.MapDBGraphIndex;
 import org.eclipse.jetty.http.HttpStatus;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Result;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -47,12 +48,13 @@ public class GetTrianglesByDefaultQuery implements PerformanceTest {
         return result;
     }
 
+
     /**
      * {@inheritDoc}
      */
     @Override
     public int dryRuns(Map<String, Object> params) {
-        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 100 : 100; //TODO
+        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 50 : 5; //TODO
     }
 
     /**
@@ -60,9 +62,8 @@ public class GetTrianglesByDefaultQuery implements PerformanceTest {
      */
     @Override
     public int measuredRuns() {
-        return 100;
+        return 10;
     }
-
     /**
      * {@inheritDoc}
      */
@@ -81,7 +82,7 @@ public class GetTrianglesByDefaultQuery implements PerformanceTest {
 
     @Override
     public String getExistingDatabasePath() {
-        return "testDb/graph10000-50000.db.zip";
+        return "testDb/graph100000-500000.db.zip";
     }
 
     /**
@@ -105,7 +106,8 @@ public class GetTrianglesByDefaultQuery implements PerformanceTest {
         time += TestUtils.time(new TestUtils.Timed() {
             @Override
             public void time() {
-                database.execute("MATCH (a)--(b)--(c)--(a) RETURN a,b,c");
+                Result result = database.execute("MATCH (a)--(b)--(c)--(a) RETURN a,b,c");
+                
             }
         });
 

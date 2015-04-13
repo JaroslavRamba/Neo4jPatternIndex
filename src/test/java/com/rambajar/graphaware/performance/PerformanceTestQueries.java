@@ -11,8 +11,8 @@ public class PerformanceTestQueries extends PerformanceTestSuite {
     @Override
     protected PerformanceTest[] getPerfTests() {
         return new PerformanceTest[]{
+                //new GetTrianglesByDefaultQuery(),
                 new GetTrianglesByPatternQuery()
-
         };
     }
 

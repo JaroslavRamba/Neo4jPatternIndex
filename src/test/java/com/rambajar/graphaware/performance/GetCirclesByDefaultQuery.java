@@ -37,12 +37,13 @@ public class GetCirclesByDefaultQuery implements PerformanceTest {
         return result;
     }
 
+
     /**
      * {@inheritDoc}
      */
     @Override
     public int dryRuns(Map<String, Object> params) {
-        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 100 : 100; //TODO
+        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 50 : 5; //TODO
     }
 
     /**
@@ -50,7 +51,7 @@ public class GetCirclesByDefaultQuery implements PerformanceTest {
      */
     @Override
     public int measuredRuns() {
-        return 100;
+        return 10;
     }
 
     /**

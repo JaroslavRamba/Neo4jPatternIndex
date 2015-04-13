@@ -95,7 +95,7 @@ public class GetTrianglesByPatternQuery implements PerformanceTest {
 
     @Override
     public String getExistingDatabasePath() {
-        return "testDb/graph10000-50000.db.zip";
+        return "testDb/graph100000-500000.db.zip";
     }
 
     /**
