@@ -29,10 +29,10 @@ public class GraphIndexQueries extends GraphIndexTest {
     }
 
     @Test
-    public void testReverseVPatternWithArrow() {
+    public void testVPatternWithArrow() {
         String query = "MATCH (a:Female)-->(b:Person)<--(c:Male) RETURN a,b,c";
         String pattern = "(a)-[d]->(b)<-[e]-(c)";
-        String indexName = "reverseVWithArrow";
+        String indexName = "VWithArrow";
         int expectedResult = 12641;
 
         createPatternIndex(indexName, pattern, expectedResult);
@@ -41,10 +41,10 @@ public class GraphIndexQueries extends GraphIndexTest {
     }
 
     @Test
-    public void testReverseVPattern() {
+    public void testVPattern() {
         String query = "MATCH (a:Female)-->(b:Person)<--(c:Male) RETURN a,b,c";
         String pattern = "(a)-[d]-(b)-[e]-(c)";
-        String indexName = "reverseV";
+        String indexName = "V";
         int expectedResult = 49569;
 
         createPatternIndex(indexName, pattern, expectedResult);
