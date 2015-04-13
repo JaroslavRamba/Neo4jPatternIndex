@@ -11,9 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-/**
- * Bootstraps the {@link PatternIndexModule} in server mode.
- */
 public class TransactionHandleBootstrapper implements RuntimeModuleBootstrapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(TransactionHandleBootstrapper.class);

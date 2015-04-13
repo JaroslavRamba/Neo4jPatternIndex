@@ -1,5 +1,9 @@
 package com.rambajar.graphaware;
 
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -17,6 +21,7 @@ public abstract class BaseGraphIndex implements GraphIndex {
      */
     @Override
     public void create(String indexName, String pattern) {
+        pattern = pattern.replace("+", " ");
         createRecordIndex(indexName, pattern);
         addPatternToIndex(indexName, pattern, null);
     }
@@ -26,6 +31,7 @@ public abstract class BaseGraphIndex implements GraphIndex {
      */
     @Override
     public String get(String indexName, String query) {
+        query = query.replace("+", " ");
         return getPatterns(indexName, query);
     }
 

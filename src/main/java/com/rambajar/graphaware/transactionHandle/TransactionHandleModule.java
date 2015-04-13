@@ -12,11 +12,9 @@ import com.rambajar.graphaware.GraphIndex;
 import com.rambajar.graphaware.MapDBGraphIndex;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Result;
 
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentNavigableMap;
 
 public class TransactionHandleModule extends BaseTxDrivenModule<Void> {
@@ -41,6 +39,7 @@ public class TransactionHandleModule extends BaseTxDrivenModule<Void> {
             for (String indexRecord : indexRecords.keySet()) {
                 String pattern = indexRecords.get(indexRecord);
                 graphIndex.addPatternToIndex(indexRecord, pattern, Long.toString(relationship.getStartNode().getId()));
+                Log.info(pattern + " size: " + graphIndex.getPatternRecords(indexRecord).size());
             }
         }
 

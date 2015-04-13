@@ -7,10 +7,7 @@ import org.neo4j.graphdb.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -37,7 +34,7 @@ public class IndexApi {
     }
 
     @RequestMapping(value = "/{indexName}/{query}", method = POST)
-    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ResponseBody
     public String getPatterns(@PathVariable String indexName, @PathVariable String query) {
           return graphIndex.get(indexName, query);
     }

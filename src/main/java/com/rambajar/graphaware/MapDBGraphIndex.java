@@ -21,13 +21,10 @@ public class MapDBGraphIndex extends BaseGraphIndex {
     private final GraphDatabaseService database;
     private final DB mapDB;
     private static final String INDEX_RECORD = "indexName";
-    private static final String INDEX_DATABASE_PATH = "index/graphIndex";
 
     public MapDBGraphIndex(GraphDatabaseService database) {
         this.database = database;
-        this.mapDB = DBMaker.newFileDB(new File(INDEX_DATABASE_PATH))
-                .asyncWriteEnable()
-                .make();
+        this.mapDB = MapDB.getInstance();
     }
 
     protected void createRecordIndex(String indexName, String pattern) {
@@ -186,3 +183,4 @@ public class MapDBGraphIndex extends BaseGraphIndex {
         return mapDB.getTreeMap(indexName);
     }
 }
+

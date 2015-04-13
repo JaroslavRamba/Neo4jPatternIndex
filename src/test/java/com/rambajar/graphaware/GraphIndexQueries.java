@@ -28,7 +28,7 @@ public class GraphIndexQueries extends GraphIndexTest {
         deletePatternIndex(indexName);
     }
 
-    //@Test
+    @Test
     public void testReverseVPatternWithArrow() {
         String query = "MATCH (a:Female)-->(b:Person)<--(c:Male) RETURN a,b,c";
         String pattern = "(a)-[d]->(b)<-[e]-(c)";
@@ -40,7 +40,7 @@ public class GraphIndexQueries extends GraphIndexTest {
         deletePatternIndex(indexName);
     }
 
-    //@Test
+    @Test
     public void testReverseVPattern() {
         String query = "MATCH (a:Female)-->(b:Person)<--(c:Male) RETURN a,b,c";
         String pattern = "(a)-[d]-(b)-[e]-(c)";
@@ -52,7 +52,7 @@ public class GraphIndexQueries extends GraphIndexTest {
         deletePatternIndex(indexName);
     }
 
-    //@Test
+    @Test
     public void testTrianglePattern() {
         String query = "MATCH (a)--(b)--(c)--(a) RETURN a,b,c";
         String pattern = "(a)-[r]-(b)-[p]-(c)-[q]-(a)";
@@ -66,7 +66,7 @@ public class GraphIndexQueries extends GraphIndexTest {
 
     /* Exceptions */
 
-    //@Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void blankDefinedRelationshipVariableExceptionPattern() {
         String pattern = "(a)-[]-(b)";
         String indexName = "triangle";
@@ -75,7 +75,7 @@ public class GraphIndexQueries extends GraphIndexTest {
         createPatternIndex(indexName, pattern, expectedResult);
     }
 
-    //@Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void noDefinedRelationshipVariableExceptionPattern() {
         String pattern = "(a)--(b)";
         String indexName = "triangle";
@@ -84,7 +84,7 @@ public class GraphIndexQueries extends GraphIndexTest {
         createPatternIndex(indexName, pattern, expectedResult);
     }
 
-    //@Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void blankDefinedNodeVariableExceptionPattern() {
         String pattern = "()-[c]-(b)";
         String indexName = "triangle";
@@ -97,7 +97,7 @@ public class GraphIndexQueries extends GraphIndexTest {
         GraphIndex graphIndex = new MapDBGraphIndex(getDatabase());
         graphIndex.create(indexName, pattern);
 
-        assertEquals("createPatternIndex " + indexName, expectedResult, getMapDb().getTreeMap(indexName).keySet().size());
+        assertEquals("createPatternIndex " + indexName, expectedResult, MapDB.getInstance().getTreeMap(indexName).keySet().size());
     }
 
     private void getPatternIndex(String indexName, String query) {
@@ -117,6 +117,6 @@ public class GraphIndexQueries extends GraphIndexTest {
     private void deletePatternIndex(String indexName) {
         GraphIndex graphIndex = new MapDBGraphIndex(getDatabase());
         graphIndex.delete(indexName);
-        assertEquals("deletePatternIndex " + indexName, 0, getMapDb().getTreeMap(indexName).keySet().size());
+        assertEquals("deletePatternIndex " + indexName, 0, MapDB.getInstance().getTreeMap(indexName).keySet().size());
     }
 }

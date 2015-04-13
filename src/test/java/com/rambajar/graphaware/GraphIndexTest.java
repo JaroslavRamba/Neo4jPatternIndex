@@ -18,13 +18,13 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.graphaware.common.util.DatabaseUtils.registerShutdownHook;
+import static com.graphaware.runtime.RuntimeRegistry.getRuntime;
 
 /**
  * Created by Jaroslav on 4/6/15.
  */
 public class GraphIndexTest extends GraphAwareApiTest {
 
-    private DB mapDb;
     final String databaseZipPath = "testDb/graph1000-5000.db.zip";
     protected TemporaryFolder temporaryFolder;
     protected static final String INDEX_RECORD = "indexName";
@@ -39,16 +39,18 @@ public class GraphIndexTest extends GraphAwareApiTest {
         createTemporaryFolder();
 
         //Neo4j database
-        String dababaseFolderName = new File(databaseZipPath).getName();
-        dababaseFolderName = dababaseFolderName.replace(".zip", "");
-        GraphDatabaseBuilder graphDatabaseBuilder = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(unzipDatabase(temporaryFolder, databaseZipPath) + "/" + dababaseFolderName)
+        String databaseFolderName = new File(databaseZipPath).getName();
+        databaseFolderName = databaseFolderName.replace(".zip", "");
+        GraphDatabaseBuilder graphDatabaseBuilder = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(unzipDatabase(temporaryFolder, databaseZipPath) + "/" + databaseFolderName)
                 .loadPropertiesFromFile(this.getClass().getClassLoader().getResource("neo4j-patternIndex.properties").getPath());
+
 
         if (propertiesFile() != null) {
             graphDatabaseBuilder = graphDatabaseBuilder.loadPropertiesFromFile(propertiesFile());
         }
 
         GraphDatabaseService database = graphDatabaseBuilder.newGraphDatabase();
+        getRuntime(database).waitUntilStarted();
         registerShutdownHook(database);
 
         return database;
@@ -85,15 +87,6 @@ public class GraphIndexTest extends GraphAwareApiTest {
         File dir = new File("index");
         deleteFolder(dir);
         dir.mkdir();
-    }
-
-    protected DB getMapDb() {
-        if (mapDb == null) {
-            mapDb = DBMaker.newFileDB(new File("index/graphIndex"))
-                    .cacheDisable()
-                    .make(); //TODO temporaryFolder.getRoot().getAbsolutePath() + "/mapDBtest")
-        }
-        return mapDb;
     }
 
     public static void deleteFolder(File folder) {
