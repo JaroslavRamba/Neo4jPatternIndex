@@ -44,12 +44,9 @@ public class GetTrianglesByDefaultQuery implements PerformanceTest {
     @Override
     public List<Parameter> parameters() {
         List<Parameter> result = new LinkedList<>();
-        //result.add(new CacheParameter("cache")); //no cache, low-level cache, high-level cache
-        result.add(new ObjectParameter("cache", new HighLevelCache())); //high-level cache
-
+        result.add(new CacheParameter("cache")); //no cache, low-level cache, high-level cache
         return result;
     }
-
 
 
     /**
