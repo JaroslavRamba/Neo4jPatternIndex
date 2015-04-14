@@ -16,12 +16,15 @@ import java.util.Map;
 
 public class GetVByDefaultQuery implements PerformanceTest {
 
+    private final String GRAPH_SIZE = "1000-5000";
+
+
     /**
      * {@inheritDoc}
      */
     @Override
     public String shortName() {
-        return "GetVByDefaultQuery";
+        return "GetVByDefaultQuery (" + GRAPH_SIZE + ")";
     }
 
     @Override
@@ -39,12 +42,13 @@ public class GetVByDefaultQuery implements PerformanceTest {
         return result;
     }
 
+
     /**
      * {@inheritDoc}
      */
     @Override
     public int dryRuns(Map<String, Object> params) {
-        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 100 : 100; //TODO
+        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 100 : 10;
     }
 
     /**
@@ -73,7 +77,7 @@ public class GetVByDefaultQuery implements PerformanceTest {
 
     @Override
     public String getExistingDatabasePath() {
-        return "testDb/graph10000-50000.db.zip";
+        return "testDb/graph" + GRAPH_SIZE + ".db.zip";
     }
 
     /**
@@ -98,8 +102,9 @@ public class GetVByDefaultQuery implements PerformanceTest {
             @Override
             public void time() {
                 Result result = database.execute("MATCH (a)--(b)--(c)--(a) RETURN a,b,c");
-                Gson gson = new Gson();
-                gson.toJson(result);
+                while (result.hasNext()) {
+                    result.next();
+                }
             }
         });
 

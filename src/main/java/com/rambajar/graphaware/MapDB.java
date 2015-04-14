@@ -15,9 +15,8 @@ public class MapDB {
     public static DB getInstance() {
         if (mapDB == null) {
             mapDB = DBMaker.newFileDB(new File(INDEX_DATABASE_PATH))
-                    .asyncWriteEnable()
+                    .cacheHardRefEnable()
                     .make();
-
         }
 
         return mapDB;

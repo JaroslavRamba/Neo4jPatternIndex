@@ -22,13 +22,15 @@ public class GetCirclesByPatternQuery implements PerformanceTest {
     String indexName = "circle";
     GraphIndex graphIndex;
     Boolean indexCreated = false;
+    private final String GRAPH_SIZE = "1000-5000";
+
 
     /**
      * {@inheritDoc}
      */
     @Override
     public String shortName() {
-        return "GetCirclesOriginal";
+        return "GetCirclesOriginal (" + GRAPH_SIZE + ")";
     }
 
     @Override
@@ -46,12 +48,13 @@ public class GetCirclesByPatternQuery implements PerformanceTest {
         return result;
     }
 
+
     /**
      * {@inheritDoc}
      */
     @Override
     public int dryRuns(Map<String, Object> params) {
-        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 50 : 5; //TODO
+        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 100 : 10;
     }
 
     /**
@@ -59,7 +62,7 @@ public class GetCirclesByPatternQuery implements PerformanceTest {
      */
     @Override
     public int measuredRuns() {
-        return 10;
+        return 100;
     }
 
     /**
@@ -87,7 +90,7 @@ public class GetCirclesByPatternQuery implements PerformanceTest {
 
     @Override
     public String getExistingDatabasePath() {
-        return "testDb/graph10000-50000.db.zip";
+        return "testDb/graph" + GRAPH_SIZE + ".db.zip";
     }
 
     /**

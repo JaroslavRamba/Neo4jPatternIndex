@@ -1,10 +1,7 @@
 package com.rambajar.graphaware.performance;
 
 import com.esotericsoftware.minlog.Log;
-import com.graphaware.test.performance.CacheConfiguration;
-import com.graphaware.test.performance.CacheParameter;
-import com.graphaware.test.performance.Parameter;
-import com.graphaware.test.performance.PerformanceTest;
+import com.graphaware.test.performance.*;
 import com.graphaware.test.util.TestUtils;
 import com.rambajar.graphaware.GraphIndex;
 import com.rambajar.graphaware.MapDBGraphIndex;
@@ -25,18 +22,20 @@ import static com.graphaware.test.util.TestUtils.put;
 public class GetTrianglesByPatternQuery implements PerformanceTest {
 
 
-    String query = "MATCH (a)--(b)--(c)--(a) RETURN a,b,c";
+    String query = "MATCH (a)--(b)--(c)--(a) RETURN id(a),id(b),id(c)";
     String pattern = "(a)-[r]-(b)-[p]-(c)-[q]-(a)";
     String indexName = "triangle";
     GraphIndex graphIndex;
     Boolean indexCreated = false;
+    private final String GRAPH_SIZE = "1000-5000";
+
 
     /**
      * {@inheritDoc}
      */
     @Override
     public String shortName() {
-        return "GetTrianglesByPatternQuery";
+        return "GetTrianglesByPatternQuery (" + GRAPH_SIZE + ")";
     }
 
     @Override
@@ -50,16 +49,19 @@ public class GetTrianglesByPatternQuery implements PerformanceTest {
     @Override
     public List<Parameter> parameters() {
         List<Parameter> result = new LinkedList<>();
-        result.add(new CacheParameter("cache")); //no cache, low-level cache, high-level cache
+        //result.add(new CacheParameter("cache")); //no cache, low-level cache, high-level cache
+        result.add(new ObjectParameter("cache", new HighLevelCache())); //high-level cache
+
         return result;
     }
+
 
     /**
      * {@inheritDoc}
      */
     @Override
     public int dryRuns(Map<String, Object> params) {
-        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 50 : 5; //TODO
+        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 100 : 10;
     }
 
     /**
@@ -67,7 +69,7 @@ public class GetTrianglesByPatternQuery implements PerformanceTest {
      */
     @Override
     public int measuredRuns() {
-        return 10;
+        return 100;
     }
 
     /**
@@ -95,7 +97,7 @@ public class GetTrianglesByPatternQuery implements PerformanceTest {
 
     @Override
     public String getExistingDatabasePath() {
-        return "testDb/graph100000-500000.db.zip";
+        return "testDb/graph" + GRAPH_SIZE + ".db.zip";
     }
 
     /**

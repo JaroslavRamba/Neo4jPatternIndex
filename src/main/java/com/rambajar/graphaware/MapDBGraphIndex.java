@@ -4,6 +4,7 @@ import com.esotericsoftware.minlog.Log;
 import com.google.gson.Gson;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
+import org.mapdb.HTreeMap;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 
@@ -59,7 +60,6 @@ public class MapDBGraphIndex extends BaseGraphIndex {
         }
 
         Result result = database.execute(patternCypherQuery);
-        Log.info(patternCypherQuery);
 
         while (result.hasNext()) {
             Map<String, Object> row = result.next();
@@ -93,12 +93,10 @@ public class MapDBGraphIndex extends BaseGraphIndex {
 
         ConcurrentNavigableMap<String, String> indexRecords = getIndexRecords();
         if (indexRecords.containsKey(indexName)) {
-
             ConcurrentNavigableMap<String, String> patternRecords = getPatternRecords(indexName);
             HashSet<String> usedNodes = new HashSet<>();
             HashSet<Map<String, Object>> resultPatterns = new HashSet<>();
             Log.info("KeySet size: " + patternRecords.keySet().size());
-
             for (String patternRecord : patternRecords.keySet()) {
 
                 String[] patternKey = patternRecord.split("__");
@@ -134,7 +132,7 @@ public class MapDBGraphIndex extends BaseGraphIndex {
             throw new IllegalArgumentException("Index name doesn't exist");
         }
 
-        Log.info("RecordIndex " + indexName + " deleted");
+        //Log.info("RecordIndex " + indexName + " deleted");
         mapDB.commit();
     }
 
@@ -145,7 +143,7 @@ public class MapDBGraphIndex extends BaseGraphIndex {
             throw new IllegalArgumentException("Pattern doesn't exist");
         }
 
-        Log.info("PatternIndex " + indexName + " deleted");
+        //Log.info("PatternIndex " + indexName + " deleted");
         mapDB.commit();
     }
 

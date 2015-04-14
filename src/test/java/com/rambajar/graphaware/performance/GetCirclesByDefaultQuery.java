@@ -6,6 +6,7 @@ import com.graphaware.test.performance.Parameter;
 import com.graphaware.test.performance.PerformanceTest;
 import com.graphaware.test.util.TestUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Result;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -14,12 +15,15 @@ import java.util.Map;
 
 public class GetCirclesByDefaultQuery implements PerformanceTest {
 
+
+    private final String GRAPH_SIZE = "1000-5000";
+
     /**
      * {@inheritDoc}
      */
     @Override
     public String shortName() {
-        return "GetCirclesOriginal";
+        return "GetCirclesOriginal (" + GRAPH_SIZE + ")";
     }
 
     @Override
@@ -43,7 +47,7 @@ public class GetCirclesByDefaultQuery implements PerformanceTest {
      */
     @Override
     public int dryRuns(Map<String, Object> params) {
-        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 50 : 5; //TODO
+        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 100 : 10;
     }
 
     /**
@@ -51,7 +55,7 @@ public class GetCirclesByDefaultQuery implements PerformanceTest {
      */
     @Override
     public int measuredRuns() {
-        return 10;
+        return 100;
     }
 
     /**
@@ -72,7 +76,7 @@ public class GetCirclesByDefaultQuery implements PerformanceTest {
 
     @Override
     public String getExistingDatabasePath() {
-        return "testDb/graph10000-50000.db.zip";
+        return "testDb/graph" + GRAPH_SIZE + ".db.zip";
     }
 
     /**
@@ -93,7 +97,10 @@ public class GetCirclesByDefaultQuery implements PerformanceTest {
         time += TestUtils.time(new TestUtils.Timed() {
             @Override
             public void time() {
-                database.execute("MATCH (a)-[f]-(b)-[g]-(c)-[h]-(d)-[i]-(e)-[j]-(a) RETURN a,b,c");
+                Result result = database.execute("MATCH (a)-[f]-(b)-[g]-(c)-[h]-(d)-[i]-(e)-[j]-(a) RETURN a,b,c");
+                while (result.hasNext()) {
+                    result.next();
+                }
             }
         });
 

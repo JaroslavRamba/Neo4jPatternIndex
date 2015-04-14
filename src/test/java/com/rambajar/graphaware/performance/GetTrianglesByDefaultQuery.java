@@ -1,9 +1,6 @@
 package com.rambajar.graphaware.performance;
 
-import com.graphaware.test.performance.CacheConfiguration;
-import com.graphaware.test.performance.CacheParameter;
-import com.graphaware.test.performance.Parameter;
-import com.graphaware.test.performance.PerformanceTest;
+import com.graphaware.test.performance.*;
 import com.graphaware.test.util.TestUtils;
 import com.rambajar.graphaware.GraphIndex;
 import com.rambajar.graphaware.MapDB;
@@ -25,12 +22,15 @@ import static org.junit.Assert.assertEquals;
 
 public class GetTrianglesByDefaultQuery implements PerformanceTest {
 
+    private final String GRAPH_SIZE = "1000-5000";
+
+
     /**
      * {@inheritDoc}
      */
     @Override
     public String shortName() {
-        return "GetTrianglesByDefaultQuery";
+        return "GetTrianglesByDefaultQuery (" + GRAPH_SIZE + ")";
     }
 
     @Override
@@ -44,9 +44,12 @@ public class GetTrianglesByDefaultQuery implements PerformanceTest {
     @Override
     public List<Parameter> parameters() {
         List<Parameter> result = new LinkedList<>();
-        result.add(new CacheParameter("cache")); //no cache, low-level cache, high-level cache
+        //result.add(new CacheParameter("cache")); //no cache, low-level cache, high-level cache
+        result.add(new ObjectParameter("cache", new HighLevelCache())); //high-level cache
+
         return result;
     }
+
 
 
     /**
@@ -54,7 +57,7 @@ public class GetTrianglesByDefaultQuery implements PerformanceTest {
      */
     @Override
     public int dryRuns(Map<String, Object> params) {
-        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 50 : 5; //TODO
+        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 100 : 10;
     }
 
     /**
@@ -62,8 +65,10 @@ public class GetTrianglesByDefaultQuery implements PerformanceTest {
      */
     @Override
     public int measuredRuns() {
-        return 10;
+        return 100;
     }
+
+
     /**
      * {@inheritDoc}
      */
@@ -82,7 +87,7 @@ public class GetTrianglesByDefaultQuery implements PerformanceTest {
 
     @Override
     public String getExistingDatabasePath() {
-        return "testDb/graph100000-500000.db.zip";
+        return "testDb/graph" + GRAPH_SIZE + ".db.zip";
     }
 
     /**
@@ -106,8 +111,10 @@ public class GetTrianglesByDefaultQuery implements PerformanceTest {
         time += TestUtils.time(new TestUtils.Timed() {
             @Override
             public void time() {
-                Result result = database.execute("MATCH (a)--(b)--(c)--(a) RETURN a,b,c");
-                
+                Result result = database.execute("MATCH (a)--(b)--(c)--(a) RETURN id(a),id(b),id(c)");
+                while (result.hasNext()) {
+                    result.next();
+                }
             }
         });
 
