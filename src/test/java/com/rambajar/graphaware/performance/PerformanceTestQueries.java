@@ -20,7 +20,7 @@ public class PerformanceTestQueries extends PerformanceTestSuite {
                 new GetVByDefaultQuery(),
                 new GetVByPatternQuery(),
                 new GetCirclesByDefaultQuery(),
-                new GetTrianglesByPatternQuery()
+                new GetCirclesByPatternQuery()
         };
 
 
@@ -32,5 +32,4 @@ public class PerformanceTestQueries extends PerformanceTestSuite {
         GraphIndexQueries.deleteFolder(dir);
         dir.mkdir();
     }
-
 }
