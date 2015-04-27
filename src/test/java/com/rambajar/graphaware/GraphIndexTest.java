@@ -81,7 +81,7 @@ public class GraphIndexTest extends GraphAwareApiTest {
         return baseUrl() + "/pattern-index/";
     }
 
-    @After
+    //@After
     public void closeDatabase() {
         //temporaryFolder.delete();
         File dir = new File("index");

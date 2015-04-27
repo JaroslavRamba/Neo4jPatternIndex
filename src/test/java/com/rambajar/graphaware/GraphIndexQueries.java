@@ -13,7 +13,7 @@ public class GraphIndexQueries extends GraphIndexTest {
 
 
     @Test
-    public void testCirclePatternWithArrow() {
+    public void testCirclePattern() {
         String query = "MATCH (a)-[f]-(b)-[g]-(c)-[h]-(d)-[i]-(e)-[j]-(a) RETURN a,b,c";
         String pattern = "(a)-[f]-(b)-[g]-(c)-[h]-(d)-[i]-(e)-[j]-(a)";
         String indexName = "circle";
