@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 
 public class GetTrianglesByDefaultQuery implements PerformanceTest {
 
-    private final String GRAPH_SIZE = "1000-5000";
+    private final String GRAPH_SIZE = "10000-50000"; //measure runs only for no-cache 10
 
 
     /**
@@ -45,6 +45,9 @@ public class GetTrianglesByDefaultQuery implements PerformanceTest {
     public List<Parameter> parameters() {
         List<Parameter> result = new LinkedList<>();
         result.add(new CacheParameter("cache")); //no cache, low-level cache, high-level cache
+        result.add(new ObjectParameter("cache", new HighLevelCache(), new LowLevelCache())); //low-level cache, high-level cache
+        //result.add(new ObjectParameter("cache", new NoCache())); //low-level cache, high-level cache
+
         return result;
     }
 

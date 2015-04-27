@@ -6,18 +6,13 @@ import com.rambajar.graphaware.MapDB;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.tooling.GlobalGraphOperations;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentNavigableMap;
 
-import static com.graphaware.test.util.TestUtils.delete;
-import static com.graphaware.test.util.TestUtils.post;
-import static com.graphaware.test.util.TestUtils.put;
+import static com.graphaware.test.util.TestUtils.*;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -31,7 +26,7 @@ public class IndexApiTest extends GraphIndexTest {
         String pattern = "(a)-[d]-(b)-[e]-(c)-[f]-(a)";
         String patterParameter = URLEncoder.encode(pattern, "UTF-8");
         String indexName = "triangle";
-        put(getUrl() + indexName + "/" + patterParameter, HttpStatus.CREATED_201);
+        post(getUrl() + indexName + "/" + patterParameter, HttpStatus.CREATED_201);
 
         ConcurrentNavigableMap<String, String> indexRecords = MapDB.getInstance().getTreeMap(INDEX_RECORD);
         ConcurrentNavigableMap<String, String> patternRecords = MapDB.getInstance().getTreeMap(indexName);
@@ -41,7 +36,7 @@ public class IndexApiTest extends GraphIndexTest {
     }
 
     @Test
-    public void testCetReverseVPatternsFromIndex() throws UnsupportedEncodingException {
+    public void testGetReverseVPatternsFromIndex() throws UnsupportedEncodingException {
 
         String query = "MATCH (a:Female)-->(b:Person)<--(c:Male) RETURN a,b,c";
         String pattern = "(a)-[d]-(b)-[e]-(c)";
@@ -50,8 +45,8 @@ public class IndexApiTest extends GraphIndexTest {
         String patternParameter = URLEncoder.encode(pattern, "UTF-8");
         String queryParameter = URLEncoder.encode(query, "UTF-8");
 
-        put(getUrl() + indexName + "/" + patternParameter, HttpStatus.CREATED_201);
-        String postResult = post(getUrl() + indexName + "/" + queryParameter, HttpStatus.OK_200);
+        post(getUrl() + indexName + "/" + patternParameter, HttpStatus.CREATED_201);
+        String postResult = get(getUrl() + indexName + "/" + queryParameter, HttpStatus.OK_200);
 
         Result queryResult = getDatabase().execute(query);
 
@@ -81,8 +76,8 @@ public class IndexApiTest extends GraphIndexTest {
         String queryParameter = URLEncoder.encode(query, "UTF-8");
 
 
-        put(getUrl() + indexName + "/" + patternParameter, HttpStatus.CREATED_201);
-        String postResult = post(getUrl() + indexName + "/" + queryParameter, HttpStatus.OK_200);
+        post(getUrl() + indexName + "/" + patternParameter, HttpStatus.CREATED_201);
+        String postResult = get(getUrl() + indexName + "/" + queryParameter, HttpStatus.OK_200);
 
         Result queryResult = getDatabase().execute(query);
 
@@ -101,7 +96,7 @@ public class IndexApiTest extends GraphIndexTest {
         assertEquals("getPatternIndex " + indexName, postResult.length(), gson.toJson(result).length());
 
         delete(getUrl() + indexName, HttpStatus.ACCEPTED_202);
-        post(getUrl() + indexName + "/" + queryParameter, HttpStatus.BAD_REQUEST_400);
+        get(getUrl() + indexName + "/" + queryParameter, HttpStatus.BAD_REQUEST_400);
 
     }
 }

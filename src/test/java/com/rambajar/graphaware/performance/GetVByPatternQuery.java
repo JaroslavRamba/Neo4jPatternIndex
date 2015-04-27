@@ -23,7 +23,7 @@ public class GetVByPatternQuery implements PerformanceTest {
     String indexName = "V";
     GraphIndex graphIndex;
     Boolean indexCreated =  false;
-    private final String GRAPH_SIZE = "1000-5000";
+    private final String GRAPH_SIZE = "10000-50000";
 
 
     /**

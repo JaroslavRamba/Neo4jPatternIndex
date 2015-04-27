@@ -4,20 +4,15 @@ import com.esotericsoftware.minlog.Log;
 import com.graphaware.test.performance.*;
 import com.graphaware.test.util.TestUtils;
 import com.rambajar.graphaware.GraphIndex;
+import com.rambajar.graphaware.GraphIndexQueries;
 import com.rambajar.graphaware.MapDBGraphIndex;
-import org.eclipse.jetty.http.HttpStatus;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Result;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.io.File;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import static com.graphaware.test.util.TestUtils.post;
-import static com.graphaware.test.util.TestUtils.put;
 
 public class GetTrianglesByPatternQuery implements PerformanceTest {
 
@@ -27,7 +22,7 @@ public class GetTrianglesByPatternQuery implements PerformanceTest {
     String indexName = "triangle";
     GraphIndex graphIndex;
     Boolean indexCreated = false;
-    private final String GRAPH_SIZE = "1000-5000";
+    private final String GRAPH_SIZE = "100000-500000";
 
 
     /**
@@ -49,7 +44,11 @@ public class GetTrianglesByPatternQuery implements PerformanceTest {
     @Override
     public List<Parameter> parameters() {
         List<Parameter> result = new LinkedList<>();
-        result.add(new CacheParameter("cache")); //no cache, low-level cache, high-level cache
+        //result.add(new CacheParameter("cache")); //no cache, low-level cache, high-level cache
+        //result.add(new ObjectParameter("cache", new HighLevelCache())); //low-level cache, high-level cache
+        //result.add(new ObjectParameter("cache", new LowLevelCache())); //low-level cache, high-level cache
+        result.add(new ObjectParameter("cache", new NoCache())); //low-level cache, high-level cache
+
         return result;
     }
 
@@ -59,7 +58,7 @@ public class GetTrianglesByPatternQuery implements PerformanceTest {
      */
     @Override
     public int dryRuns(Map<String, Object> params) {
-        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 100 : 10;
+        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 1 : 1;
     }
 
     /**
@@ -67,7 +66,7 @@ public class GetTrianglesByPatternQuery implements PerformanceTest {
      */
     @Override
     public int measuredRuns() {
-        return 100;
+        return 1;
     }
 
     /**
@@ -85,12 +84,16 @@ public class GetTrianglesByPatternQuery implements PerformanceTest {
     public void prepareDatabase(GraphDatabaseService database, final Map<String, Object> params) {
         graphIndex = new MapDBGraphIndex(database);
 
-        if (!indexCreated) {
-            Log.info("Creating index...");
-            graphIndex.create(indexName, pattern);
-            Log.info("Index created");
-            indexCreated = true;
-        }
+        long time = 0;
+        Log.info("Creating index...");
+        time += TestUtils.time(new TestUtils.Timed() {
+            @Override
+            public void time() {
+                graphIndex.create(indexName, pattern);
+            }
+        });
+        Log.info("Time " + time);
+        Log.info("Index created");
     }
 
     @Override

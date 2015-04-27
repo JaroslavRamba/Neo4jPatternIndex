@@ -13,8 +13,6 @@ import java.util.Map;
 
 public class TransactionHandleBootstrapper implements RuntimeModuleBootstrapper {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TransactionHandleBootstrapper.class);
-
     /**
      * @{inheritDoc}
      */

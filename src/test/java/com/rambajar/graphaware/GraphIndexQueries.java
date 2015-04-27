@@ -1,12 +1,8 @@
 package com.rambajar.graphaware;
 
-import com.esotericsoftware.minlog.Log;
 import com.google.gson.Gson;
 import org.junit.Test;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
 
 import java.util.HashSet;
 import java.util.Map;

@@ -16,7 +16,7 @@ import java.util.Map;
 public class GetCirclesByDefaultQuery implements PerformanceTest {
 
 
-    private final String GRAPH_SIZE = "1000-5000";
+    private final String GRAPH_SIZE = "10000-50000";
 
     /**
      * {@inheritDoc}
@@ -28,7 +28,7 @@ public class GetCirclesByDefaultQuery implements PerformanceTest {
 
     @Override
     public String longName() {
-        return "Cypher query to get all circles with 5 nodes.";
+        return "Cypher query to get all circles with 4 nodes.";
     }
 
     /**
@@ -97,7 +97,7 @@ public class GetCirclesByDefaultQuery implements PerformanceTest {
         time += TestUtils.time(new TestUtils.Timed() {
             @Override
             public void time() {
-                Result result = database.execute("MATCH (a)-[f]-(b)-[g]-(c)-[h]-(d)-[i]-(e)-[j]-(a) RETURN a,b,c");
+                Result result = database.execute("MATCH (a)-[f]-(b)-[g]-(c)-[h]-(d)-[i]-(a) RETURN a,b,c,d");
                 while (result.hasNext()) {
                     result.next();
                 }

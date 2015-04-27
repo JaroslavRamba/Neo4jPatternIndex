@@ -22,18 +22,17 @@ public class IndexApi {
 
     private final GraphIndex graphIndex;
 
-    @Autowired
-    public IndexApi(GraphDatabaseService database) {
+    @Autowired    public IndexApi(GraphDatabaseService database) {
         this.graphIndex = new MapDBGraphIndex(database);
     }
 
-    @RequestMapping(value = "/{indexName}/{pattern}", method = PUT)
+    @RequestMapping(value = "/{indexName}/{pattern}", method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public void createPatternIndex(@PathVariable String indexName, @PathVariable String pattern) {
         graphIndex.create(indexName, pattern);
     }
 
-    @RequestMapping(value = "/{indexName}/{query}", method = POST)
+    @RequestMapping(value = "/{indexName}/{query}", method = GET)
     @ResponseBody
     public String getPatterns(@PathVariable String indexName, @PathVariable String query) {
           return graphIndex.get(indexName, query);

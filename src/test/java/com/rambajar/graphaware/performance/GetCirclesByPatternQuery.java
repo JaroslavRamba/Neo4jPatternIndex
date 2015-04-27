@@ -17,12 +17,12 @@ import java.util.Map;
 
 public class GetCirclesByPatternQuery implements PerformanceTest {
 
-    String query = "MATCH (a)-[f]-(b)-[g]-(c)-[h]-(d)-[i]-(e)-[j]-(a) RETURN a,b,c";
-    String pattern = "(a)-[f]-(b)-[g]-(c)-[h]-(d)-[i]-(e)-[j]-(a)";
+    String query = "MATCH (a)-[f]-(b)-[g]-(c)-[h]-(d)-[i]-(a) RETURN a,b,c,d";
+    String pattern = "(a)-[f]-(b)-[g]-(c)-[h]-(d)-[i]-(a)";
     String indexName = "circle";
     GraphIndex graphIndex;
     Boolean indexCreated = false;
-    private final String GRAPH_SIZE = "1000-5000";
+    private final String GRAPH_SIZE = "10000-50000";
 
 
     /**
@@ -30,12 +30,12 @@ public class GetCirclesByPatternQuery implements PerformanceTest {
      */
     @Override
     public String shortName() {
-        return "GetCirclesOriginal (" + GRAPH_SIZE + ")";
+        return "GetCirclesByPatternQuery (" + GRAPH_SIZE + ")";
     }
 
     @Override
     public String longName() {
-        return "Cypher query to get all circles with 5 nodes.";
+        return "Cypher query to get all circles with 4 nodes.";
     }
 
     /**
@@ -54,7 +54,7 @@ public class GetCirclesByPatternQuery implements PerformanceTest {
      */
     @Override
     public int dryRuns(Map<String, Object> params) {
-        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 100 : 10;
+        return ((CacheConfiguration) params.get("cache")).needsWarmup() ? 10 : 10;
     }
 
     /**
@@ -62,7 +62,7 @@ public class GetCirclesByPatternQuery implements PerformanceTest {
      */
     @Override
     public int measuredRuns() {
-        return 100;
+        return 10;
     }
 
     /**

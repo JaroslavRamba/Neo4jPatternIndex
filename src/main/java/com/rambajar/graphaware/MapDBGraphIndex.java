@@ -7,6 +7,7 @@ import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
+import scala.concurrent.Await;
 
 import java.io.File;
 import java.util.HashSet;
@@ -97,6 +98,7 @@ public class MapDBGraphIndex extends BaseGraphIndex {
             HashSet<String> usedNodes = new HashSet<>();
             HashSet<Map<String, Object>> resultPatterns = new HashSet<>();
             Log.info("KeySet size: " + patternRecords.keySet().size());
+            int i = 0;
             for (String patternRecord : patternRecords.keySet()) {
 
                 String[] patternKey = patternRecord.split("__");
@@ -112,6 +114,8 @@ public class MapDBGraphIndex extends BaseGraphIndex {
                         resultPatterns.add(queryResult.next());
                     }
                 }
+
+                //Log.info("Cycle: " + i++);
             }
 
             Log.info("KeySet reduction size: " + usedNodes.size());
@@ -150,12 +154,7 @@ public class MapDBGraphIndex extends BaseGraphIndex {
     public void deletePatternsFromIndex(String indexRecord, HashSet<String> deletedRelationships) {
         ConcurrentNavigableMap<String, String> patternRecords = getPatternRecords(indexRecord);
         for (String deletedRelationship : deletedRelationships) {
-            for (String patternRecord : patternRecords.keySet()) {
-                if (patternRecord.contains("_" + deletedRelationship + "_")) {
-                    patternRecords.remove(patternRecord);
-                    break;
-                }
-            }
+            patternRecords.remove(deletedRelationship);
         }
 
         mapDB.commit();

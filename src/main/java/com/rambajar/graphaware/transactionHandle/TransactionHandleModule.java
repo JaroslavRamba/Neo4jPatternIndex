@@ -59,7 +59,6 @@ public class TransactionHandleModule extends BaseTxDrivenModule<Void> {
             }
         }
 
-
         return null;
     }
 }
