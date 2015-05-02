@@ -40,10 +40,10 @@ public class TransactionHandleModule extends BaseTxDrivenModule<Void> {
         int i = 0;
 
         for (Relationship relationship : transactionData.getAllCreatedRelationships()) {
-            ConcurrentNavigableMap<String, String> indexRecords = graphIndex.getIndexRecords();
-            for (String indexRecord : indexRecords.keySet()) {
-                Long relStartNode = relationship.getStartNode().getId();
-                if (!usedNodes.contains(relStartNode)) {
+            Long relStartNode = relationship.getStartNode().getId();
+            if (!usedNodes.contains(relStartNode)) {
+                ConcurrentNavigableMap<String, String> indexRecords = graphIndex.getIndexRecords();
+                for (String indexRecord : indexRecords.keySet()) {
                     usedNodes.add(relStartNode);
                     String pattern = indexRecords.get(indexRecord);
                     graphIndex.addPatternToIndex(indexRecord, pattern, relStartNode.toString());
@@ -59,7 +59,7 @@ public class TransactionHandleModule extends BaseTxDrivenModule<Void> {
 
         for (Relationship relationship : transactionData.getAllDeletedRelationships()) {
             if (!usedRels.contains(usedRels)) {
-                usedNodes.add(relationship.getId());
+                usedRels.add(relationship.getId());
                 ConcurrentNavigableMap<String, String> indexRecords = graphIndex.getIndexRecords();
                 for (String indexRecord : indexRecords.keySet()) {
                     ConcurrentNavigableMap<String, String> patternRecords = graphIndex.getPatternRecords(indexRecord);
