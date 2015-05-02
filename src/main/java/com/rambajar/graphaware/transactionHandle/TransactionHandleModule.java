@@ -34,29 +34,48 @@ public class TransactionHandleModule extends BaseTxDrivenModule<Void> {
     @Override
     public Void beforeCommit(ImprovedTransactionData transactionData) throws DeliberateTransactionRollbackException {
 
+        HashSet<Long> usedNodes = new HashSet<>();
+
+        Log.info("Rels count:" + transactionData.getAllCreatedRelationships().size());
+        int i = 0;
+
         for (Relationship relationship : transactionData.getAllCreatedRelationships()) {
             ConcurrentNavigableMap<String, String> indexRecords = graphIndex.getIndexRecords();
             for (String indexRecord : indexRecords.keySet()) {
-                String pattern = indexRecords.get(indexRecord);
-                graphIndex.addPatternToIndex(indexRecord, pattern, Long.toString(relationship.getStartNode().getId()));
-                Log.info(pattern + " size: " + graphIndex.getPatternRecords(indexRecord).size());
+                Long relStartNode = relationship.getStartNode().getId();
+                if (!usedNodes.contains(relStartNode)) {
+                    usedNodes.add(relStartNode);
+                    String pattern = indexRecords.get(indexRecord);
+                    graphIndex.addPatternToIndex(indexRecord, pattern, relStartNode.toString());
+                    Log.info(i + ". " + pattern + " size: " + graphIndex.getPatternRecords(indexRecord).size());
+                }
+
+                i++;
             }
         }
 
-        for (Relationship relationship : transactionData.getAllDeletedRelationships()) {
-            ConcurrentNavigableMap<String, String> indexRecords = graphIndex.getIndexRecords();
-            for (String indexRecord : indexRecords.keySet()) {
-                ConcurrentNavigableMap<String, String> patternRecords = graphIndex.getPatternRecords(indexRecord);
-                HashSet<String> deletedRelationships = new HashSet<>();
-                for (String patternRecord : patternRecords.keySet()) {
-                    if (patternRecord.contains("_" + relationship.getId() + "_")) {
-                        deletedRelationships.add(patternRecord);
-                        Log.info(patternRecord + " was removed (" + relationship.getId() + ")");
-                    }
-                }
+        HashSet<Long> usedRels = new HashSet<>();
+        i = 0;
 
-                graphIndex.deletePatternsFromIndex(indexRecord, deletedRelationships);
+        for (Relationship relationship : transactionData.getAllDeletedRelationships()) {
+            if (!usedRels.contains(usedRels)) {
+                usedNodes.add(relationship.getId());
+                ConcurrentNavigableMap<String, String> indexRecords = graphIndex.getIndexRecords();
+                for (String indexRecord : indexRecords.keySet()) {
+                    ConcurrentNavigableMap<String, String> patternRecords = graphIndex.getPatternRecords(indexRecord);
+                    HashSet<String> deletedRelationships = new HashSet<>();
+                    for (String patternRecord : patternRecords.keySet()) {
+                        if (patternRecord.contains("_" + relationship.getId() + "_")) {
+                            deletedRelationships.add(patternRecord);
+                            Log.info(i + ". " + patternRecord + " was removed (" + relationship.getId() + ")");
+                        }
+                    }
+
+                    graphIndex.deletePatternsFromIndex(indexRecord, deletedRelationships);
+                }
             }
+
+            i++;
         }
 
         return null;
