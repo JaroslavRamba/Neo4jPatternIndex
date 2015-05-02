@@ -42,9 +42,9 @@ public class TransactionHandleModule extends BaseTxDrivenModule<Void> {
         for (Relationship relationship : transactionData.getAllCreatedRelationships()) {
             Long relStartNode = relationship.getStartNode().getId();
             if (!usedNodes.contains(relStartNode)) {
+                usedNodes.add(relStartNode);
                 ConcurrentNavigableMap<String, String> indexRecords = graphIndex.getIndexRecords();
                 for (String indexRecord : indexRecords.keySet()) {
-                    usedNodes.add(relStartNode);
                     String pattern = indexRecords.get(indexRecord);
                     graphIndex.addPatternToIndex(indexRecord, pattern, relStartNode.toString());
                     Log.info(i + ". " + pattern + " size: " + graphIndex.getPatternRecords(indexRecord).size());
