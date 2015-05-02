@@ -49,9 +49,9 @@ public class TransactionHandleModule extends BaseTxDrivenModule<Void> {
                     graphIndex.addPatternToIndex(indexRecord, pattern, relStartNode.toString());
                     Log.info(i + ". " + pattern + " size: " + graphIndex.getPatternRecords(indexRecord).size());
                 }
-
-                i++;
             }
+
+            i++;
         }
 
         HashSet<Long> usedRels = new HashSet<>();
