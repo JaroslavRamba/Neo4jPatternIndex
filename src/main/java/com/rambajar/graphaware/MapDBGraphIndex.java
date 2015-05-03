@@ -98,7 +98,6 @@ public class MapDBGraphIndex extends BaseGraphIndex {
             HashSet<String> usedNodes = new HashSet<>();
             HashSet<Map<String, Object>> resultPatterns = new HashSet<>();
             Log.info("KeySet size: " + patternRecords.keySet().size());
-            int i = 0;
             for (String patternRecord : patternRecords.keySet()) {
 
                 String[] patternKey = patternRecord.split("__");
